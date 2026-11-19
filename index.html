@@ -255,7 +255,7 @@
       border: 1px solid #cbd5e1;
       border-radius: 12px;
       box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
-      max-height: 210px;
+      max-height: 240px;
       overflow-y: auto;
       z-index: 40;
     }
@@ -282,6 +282,7 @@
       padding: 2px 7px;
       border-radius: 6px;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     /* FORM GRID */
@@ -530,7 +531,7 @@
       margin-bottom: 10px;
     }
 
-    /* FOOTER BERSIH TANPA TOMBOL FORM */
+    /* FOOTER */
     .footer {
       margin-top: 64px;
       flex-shrink: 0;
@@ -610,7 +611,7 @@
       <div class="hero-inner">
         <div class="hero-pill">✈️ Pesawat • 🚆 Kereta Api • 🚌 Bus • 🚢 Kapal Laut</div>
         <h1>Pesan Tiket Perjalanan Resmi Dalam Satu Tempat</h1>
-        <p>Pilih kota asal &amp; tujuan otomatis sesuai moda transportasi, bayar lewat transfer bank atau DANA, dan terima e-tiket resmi.</p>
+        <p>Pilih bandara, stasiun, terminal, atau pelabuhan seluruh Indonesia, bayar lewat transfer bank atau DANA, dan terima e-tiket resmi.</p>
       </div>
     </header>
 
@@ -639,7 +640,7 @@
             <div class="route-box">
               <div class="ac-wrap">
                 <label for="asalInput" id="labelAsal">Bandara Asal (Dari)</label>
-                <input type="text" id="asalInput" required placeholder="Pilih atau ketik bandara..." />
+                <input type="text" id="asalInput" required placeholder="Ketik kota atau kode bandara..." />
                 <div id="asalDropdown" class="ac-list hidden"></div>
               </div>
 
@@ -647,7 +648,7 @@
 
               <div class="ac-wrap">
                 <label for="tujuanInput" id="labelTujuan">Bandara Tujuan (Ke)</label>
-                <input type="text" id="tujuanInput" required placeholder="Pilih atau ketik bandara..." />
+                <input type="text" id="tujuanInput" required placeholder="Ketik kota atau kode bandara..." />
                 <div id="tujuanDropdown" class="ac-list hidden"></div>
               </div>
             </div>
@@ -663,7 +664,7 @@
               </div>
             </div>
 
-            <!-- PILIHAN PREFERENSI TINGGAL KLIK (TANPA NGETIK) -->
+            <!-- PILIHAN PREFERENSI TINGGAL KLIK -->
             <div class="pref-panel">
               <div class="pref-group-label">Preferensi Waktu Berangkat (Klik Pilih)</div>
               <div class="chip-row" id="waktuChips">
@@ -778,13 +779,12 @@
       </div>
     </section>
   </main>
+
   <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">Tiket<span>Express</span></div>
-      <div class="footer-desc">Layanan pemesanan tiket pesawat,
-        <span>kereta api, bus &amp; kapal laut.</span>
-        <span>Pastikan data penumpang sesuai KTP/Paspor.</span></div>
+      <div class="footer-desc">Layanan pemesanan tiket pesawat, kereta api, bus &amp; kapal laut. Pastikan data penumpang sesuai KTP/Paspor.</div>
     </div>
   </footer>
 
@@ -792,9 +792,7 @@
     // === KONFIGURASI SUPABASE & REKENING / E-WALLET ===
     const SUPABASE_URL = 'https://ezzxndbjbbvlptetrcxo.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6enhuZGJqYmJ2bHB0ZXRyY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwODYzMDksImV4cCI6MjExMDY2MjMwOX0.iLJk-rer6VwK_sckmbii8NGS6lmDdlgHHfM0d1X6awU';
-
     
-
     const PAYMENT_METHODS = [
       { bank: 'BRI', nomor: '2250 0100 5337 534', nama: 'ARIEF' },
       { bank: 'SeaBank', nomor: '901332160185', nama: 'ARIEF' },
@@ -806,82 +804,525 @@
     let selectedWaktu = '';
     let selectedOperator = '';
 
-    // === DATABASE LOKASI OTOMATIS PER MODA ===
+    // === DATABASE LENGKAP BANDARA, STASIUN, TERMINAL & PELABUHAN SELURUH INDONESIA ===
     const MASTER_RUTE = {
       Pesawat: [
-        { nama: 'Pekanbaru - Sultan Syarif Kasim II', kode: 'PKU' },
-        { nama: 'Jakarta - Soekarno-Hatta', kode: 'CGK' },
-        { nama: 'Jakarta - Halim Perdanakusuma', kode: 'HLP' },
+        // Sumatera
+        { nama: 'Banda Aceh - Sultan Iskandar Muda', kode: 'BTJ' },
+        { nama: 'Sabang - Maimun Saleh', kode: 'SBG' },
+        { nama: 'Lhokseumawe - Malikussaleh', kode: 'LSW' },
+        { nama: 'Meulaboh - Cut Nyak Dhien', kode: 'MEQ' },
         { nama: 'Medan - Kualanamu', kode: 'KNO' },
+        { nama: 'Siborong-Borong / Toba - Silangit', kode: 'DTB' },
+        { nama: 'Gunungsitoli - Binaka (Nias)', kode: 'GNS' },
+        { nama: 'Sibolga - Ferdinand Lumban Tobing', kode: 'FLZ' },
+        { nama: 'Padangsidimpuan - Aek Godang', kode: 'AEG' },
+        { nama: 'Pekanbaru - Sultan Syarif Kasim II', kode: 'PKU' },
+        { nama: 'Dumai - Pinang Kampai', kode: 'DUM' },
+        { nama: 'Rengat - Japura', kode: 'RGT' },
         { nama: 'Batam - Hang Nadim', kode: 'BTH' },
+        { nama: 'Tanjung Pinang - Raja Haji Fisabilillah', kode: 'TNJ' },
+        { nama: 'Natuna - Raden Sadjad (Ranai)', kode: 'NTX' },
+        { nama: 'Anambas - Letung', kode: 'LMU' },
+        { nama: 'Tanjung Balai Karimun - Raja Haji Abdullah', kode: 'TJB' },
         { nama: 'Padang - Minangkabau', kode: 'PDG' },
-        { nama: 'Palembang - Sultan Mahmud Badaruddin II', kode: 'PLM' },
+        { nama: 'Mentawai - Rokot', kode: 'RKI' },
         { nama: 'Jambi - Sultan Thaha', kode: 'DJB' },
-        { nama: 'Surabaya - Juanda', kode: 'SUB' },
+        { nama: 'Kerinci - Depati Parbo', kode: 'KRC' },
+        { nama: 'Muara Bungo - Muara Bungo', kode: 'BUU' },
+        { nama: 'Palembang - Sultan Mahmud Badaruddin II', kode: 'PLM' },
+        { nama: 'Lubuklinggau - Silampari', kode: 'LLJ' },
+        { nama: 'Pagar Alam - Atung Bungsu', kode: 'PXA' },
+        { nama: 'Pangkal Pinang - Depati Amir (Bangka)', kode: 'PGK' },
+        { nama: 'Tanjung Pandan - H.A.S. Hanandjoeddin (Belitung)', kode: 'TJQ' },
+        { nama: 'Bengkulu - Fatmawati Soekarno', kode: 'BKS' },
+        { nama: 'Bandar Lampung - Radin Inten II', kode: 'TKG' },
+        // Jawa
+        { nama: 'Jakarta / Tangerang - Soekarno-Hatta', kode: 'CGK' },
+        { nama: 'Jakarta - Halim Perdanakusuma', kode: 'HLP' },
+        { nama: 'Bandung - Husein Sastranegara', kode: 'BDO' },
+        { nama: 'Majalengka / Cirebon - Kertajati', kode: 'KJT' },
+        { nama: 'Tasikmalaya - Wiriadinata', kode: 'TSY' },
+        { nama: 'Pangandaran - Nusawiru', kode: 'CJN' },
+        { nama: 'Semarang - Jenderal Ahmad Yani', kode: 'SRG' },
+        { nama: 'Solo - Adi Soemarmo', kode: 'SOC' },
         { nama: 'Yogyakarta - YIA Kulon Progo', kode: 'YIA' },
-        { nama: 'Semarang - Ahmad Yani', kode: 'SRG' },
-        { nama: 'Denpasar Bali - Ngurah Rai', kode: 'DPS' },
-        { nama: 'Makassar - Sultan Hasanuddin', kode: 'UPG' },
-        { nama: 'Balikpapan - Sepinggan', kode: 'BPN' },
-        { nama: 'Banjarmasin - Syamsudin Noor', kode: 'BDJ' },
+        { nama: 'Yogyakarta - Adisutjipto', kode: 'JOG' },
+        { nama: 'Purbalingga - Jenderal Besar Soedirman', kode: 'PWL' },
+        { nama: 'Cilacap - Tunggul Wulung', kode: 'CXP' },
+        { nama: 'Karimunjawa - Dewadaru', kode: 'KWB' },
+        { nama: 'Surabaya - Juanda', kode: 'SUB' },
+        { nama: 'Malang - Abdul Rachman Saleh', kode: 'MLG' },
+        { nama: 'Banyuwangi - Banyuwangi', kode: 'BWX' },
+        { nama: 'Kediri - Dhoho', kode: 'DHX' },
+        { nama: 'Jember - Notohadinegoro', kode: 'JBB' },
+        { nama: 'Sumenep - Trunojoyo (Madura)', kode: 'SUP' },
+        // Bali & Nusa Tenggara
+        { nama: 'Denpasar Bali - I Gusti Ngurah Rai', kode: 'DPS' },
+        { nama: 'Lombok - Zainuddin Abdul Madjid', kode: 'LOP' },
+        { nama: 'Sumbawa Besar - Sultan Muhammad Kaharuddin III', kode: 'SWQ' },
+        { nama: 'Bima - Sultan Muhammad Salahuddin', kode: 'BMU' },
+        { nama: 'Labuan Bajo - Komodo', kode: 'LBJ' },
+        { nama: 'Ende - H. Hasan Aroeboesman', kode: 'ENE' },
+        { nama: 'Maumere - Frans Seda', kode: 'MOF' },
+        { nama: 'Larantuka - Gewayantana', kode: 'LKA' },
+        { nama: 'Bajawa - Turelelo Soa', kode: 'BJW' },
+        { nama: 'Ruteng - Frans Sales Lega', kode: 'RTG' },
+        { nama: 'Tambolaka - Lede Kalumbang (Sumba)', kode: 'TMC' },
+        { nama: 'Waingapu - Umbu Mehang Kunda (Sumba)', kode: 'WGP' },
+        { nama: 'Kupang - El Tari', kode: 'KOE' },
+        { nama: 'Alor - Mali', kode: 'ARD' },
+        { nama: 'Rote - D.C. Saudale', kode: 'RTI' },
+        { nama: 'Atambua - A.A. Bere Tallo', kode: 'ABU' },
+        // Kalimantan
         { nama: 'Pontianak - Supadio', kode: 'PNK' },
+        { nama: 'Ketapang - Rahadi Oesman', kode: 'KTG' },
+        { nama: 'Sintang - Tebelian', kode: 'SQG' },
+        { nama: 'Putussibau - Pangsuma', kode: 'PSU' },
+        { nama: 'Palangka Raya - Tjilik Riwut', kode: 'PKY' },
+        { nama: 'Pangkalan Bun - Iskandar', kode: 'PKN' },
+        { nama: 'Sampit - H. Asan', kode: 'SMQ' },
+        { nama: 'Muara Teweh - Haji Muhammad Sidik', kode: 'HMS' },
+        { nama: 'Banjarmasin - Syamsudin Noor', kode: 'BDJ' },
+        { nama: 'Kotabaru - Gusti Sjamsir Alam', kode: 'KBU' },
+        { nama: 'Batulicin - Bersujud', kode: 'BTW' },
+        { nama: 'Balikpapan - Sultan Aji Muhammad Sulaiman Sepinggan', kode: 'BPN' },
+        { nama: 'Samarinda - Aji Pangeran Tumenggung Pranoto', kode: 'AAP' },
+        { nama: 'Berau - Kalimarau', kode: 'BEJ' },
+        { nama: 'Melak / Kutai Barat - Melalan', kode: 'GHS' },
+        { nama: 'Tarakan - Juwata', kode: 'TRK' },
+        { nama: 'Tanjung Selor - Tanjung Harapan', kode: 'TJS' },
+        { nama: 'Malinau - Robert Atty Bessing', kode: 'LNU' },
+        { nama: 'Nunukan - Nunukan', kode: 'NNX' },
+        // Sulawesi
+        { nama: 'Makassar - Sultan Hasanuddin', kode: 'UPG' },
+        { nama: 'Tana Toraja - Toraja', kode: 'TRT' },
+        { nama: 'Palopo - Bua (Lagaligo)', kode: 'LLO' },
+        { nama: 'Selayar - H. Aroeppala', kode: 'KSR' },
+        { nama: 'Mamuju - Tampa Padang', kode: 'MJU' },
+        { nama: 'Palu - Mutiara SIS Al-Jufrie', kode: 'PLW' },
+        { nama: 'Luwuk - Syukuran Aminuddin Amir', kode: 'LUW' },
+        { nama: 'Poso - Kasiguncu', kode: 'PSJ' },
+        { nama: 'Tolitoli - Sultan Bantilan', kode: 'TLI' },
+        { nama: 'Morowali - Maleo', kode: 'MOH' },
+        { nama: 'Kendari - Haluoleo', kode: 'KDI' },
+        { nama: 'Baubau - Betoambari', kode: 'BUW' },
+        { nama: 'Wakatobi - Matahora', kode: 'WNI' },
+        { nama: 'Kolaka - Sangia Nibandera', kode: 'PUM' },
+        { nama: 'Gorontalo - Djalaluddin', kode: 'GTO' },
+        { nama: 'Pohuwato - Panua', kode: 'PWH' },
+        { nama: 'Manado - Sam Ratulangi', kode: 'MDC' },
+        { nama: 'Tahuna - Naha (Sangihe)', kode: 'NAH' },
+        { nama: 'Melonguane - Melonguane (Talaud)', kode: 'MNA' },
+        { nama: 'Bolaang Mongondow - Lolak', kode: 'BMG' },
+        // Maluku & Papua
+        { nama: 'Ambon - Pattimura', kode: 'AMQ' },
+        { nama: 'Tual / Langgur - Karel Sadsuitubun', kode: 'LUV' },
+        { nama: 'Saumlaki - Mathilda Batlayeri', kode: 'SXK' },
+        { nama: 'Namlea - Namniwel (Buru)', kode: 'NAM' },
+        { nama: 'Ternate - Sultan Babullah', kode: 'TTE' },
+        { nama: 'Tobelo - Kuabang Kao', kode: 'KAZ' },
+        { nama: 'Labuha - Oesman Sadik (Bacan)', kode: 'LAH' },
+        { nama: 'Morotai - Leo Wattimena', kode: 'OTI' },
+        { nama: 'Sanana - Emalamo', kode: 'SQN' },
+        { nama: 'Sorong - Domine Eduard Osok', kode: 'SOQ' },
+        { nama: 'Raja Ampat - Marinda (Waisai)', kode: 'RJM' },
+        { nama: 'Manokwari - Rendani', kode: 'MKW' },
+        { nama: 'Fakfak - Siboru', kode: 'FKQ' },
+        { nama: 'Kaimana - Utarom', kode: 'KNG' },
+        { nama: 'Bintuni - Stenkol', kode: 'NTI' },
+        { nama: 'Biak - Frans Kaisiepo', kode: 'BIK' },
+        { nama: 'Nabire - Douw Aturure', kode: 'NBX' },
+        { nama: 'Serui - Stevanus Rumbewas', kode: 'ZRI' },
+        { nama: 'Timika - Mozes Kilangin', kode: 'TIM' },
+        { nama: 'Jayapura - Sentani', kode: 'DJJ' },
+        { nama: 'Wamena - Wamena', kode: 'WMX' },
+        { nama: 'Dekai - Nop Goliat (Yahukimo)', kode: 'DEX' },
+        { nama: 'Oksibil - Oksibil', kode: 'OKL' },
+        { nama: 'Merauke - Mopah', kode: 'MKQ' },
+        { nama: 'Tanah Merah - Tanah Merah (Boven Digoel)', kode: 'TMH' },
+        // Internasional Populer
         { nama: 'Kuala Lumpur - KLIA', kode: 'KUL' },
-        { nama: 'Singapura - Changi', kode: 'SIN' }
+        { nama: 'Penang - Penang International', kode: 'PEN' },
+        { nama: 'Johor Bahru - Senai', kode: 'JHB' },
+        { nama: 'Kuching - Kuching International', kode: 'KCH' },
+        { nama: 'Singapura - Changi', kode: 'SIN' },
+        { nama: 'Bangkok - Suvarnabhumi', kode: 'BKK' },
+        { nama: 'Jeddah - King Abdulaziz', kode: 'JED' },
+        { nama: 'Madinah - Prince Mohammad Bin Abdulaziz', kode: 'MED' }
       ],
+
       Kereta: [
+        // Jabodetabek & Banten
         { nama: 'Jakarta - Stasiun Gambir', kode: 'GMR' },
         { nama: 'Jakarta - Stasiun Pasar Senen', kode: 'PSE' },
+        { nama: 'Jakarta - Stasiun Jatinegara', kode: 'JNG' },
+        { nama: 'Jakarta - Stasiun Manggarai', kode: 'MRI' },
+        { nama: 'Jakarta - Stasiun Tanah Abang', kode: 'THB' },
+        { nama: 'Jakarta - Stasiun Jakarta Kota', kode: 'JAKK' },
+        { nama: 'Jakarta - Stasiun Halim (Whoosh)', kode: 'HLM' },
+        { nama: 'Tangerang - Stasiun Bandara Soekarno-Hatta', kode: 'BST' },
+        { nama: 'Bekasi - Stasiun Bekasi', kode: 'BKS' },
+        { nama: 'Cikarang - Stasiun Cikarang', kode: 'CKR' },
+        { nama: 'Karawang - Stasiun Karawang', kode: 'KW' },
+        { nama: 'Karawang - Stasiun Karawang (Whoosh)', kode: 'KRW' },
+        { nama: 'Cikampek - Stasiun Cikampek', kode: 'CKP' },
+        { nama: 'Bogor - Stasiun Bogor Paledang', kode: 'BOP' },
+        { nama: 'Sukabumi - Stasiun Sukabumi', kode: 'SI' },
+        { nama: 'Serang - Stasiun Serang', kode: 'SG' },
+        { nama: 'Rangkasbitung - Stasiun Rangkasbitung', kode: 'RK' },
+        { nama: 'Merak - Stasiun Merak', kode: 'MER' },
+        // Jawa Barat
+        { nama: 'Purwakarta - Stasiun Purwakarta', kode: 'PWK' },
+        { nama: 'Padalarang - Stasiun Padalarang (KA & Whoosh)', kode: 'PDL' },
+        { nama: 'Cimahi - Stasiun Cimahi', kode: 'CMI' },
         { nama: 'Bandung - Stasiun Bandung', kode: 'BD' },
         { nama: 'Bandung - Stasiun Kiaracondong', kode: 'KAC' },
-        { nama: 'Cirebon - Stasiun Cirebon', kode: 'CN' },
+        { nama: 'Bandung - Stasiun Tegalluar (Whoosh)', kode: 'TGL' },
+        { nama: 'Cicalengka - Stasiun Cicalengka', kode: 'CCL' },
+        { nama: 'Garut - Stasiun Garut', kode: 'GRT' },
+        { nama: 'Cibatu - Stasiun Cibatu', kode: 'CB' },
+        { nama: 'Tasikmalaya - Stasiun Tasikmalaya', kode: 'TSM' },
+        { nama: 'Ciamis - Stasiun Ciamis', kode: 'CI' },
+        { nama: 'Banjar - Stasiun Banjar', kode: 'BJR' },
+        { nama: 'Haurgeulis - Stasiun Haurgeulis', kode: 'HGL' },
+        { nama: 'Jatibarang - Stasiun Jatibarang', kode: 'JTB' },
+        { nama: 'Cirebon - Stasiun Cirebon Kejaksan', kode: 'CN' },
+        { nama: 'Cirebon - Stasiun Cirebon Prujakan', kode: 'CNP' },
+        { nama: 'Babakan - Stasiun Babakan', kode: 'BBK' },
+        // Jawa Tengah & DIY
+        { nama: 'Brebes - Stasiun Brebes', kode: 'BB' },
+        { nama: 'Tegal - Stasiun Tegal', kode: 'TG' },
+        { nama: 'Pemalang - Stasiun Pemalang', kode: 'PML' },
+        { nama: 'Pekalongan - Stasiun Pekalongan', kode: 'PK' },
+        { nama: 'Weleri - Stasiun Weleri', kode: 'WLR' },
+        { nama: 'Semarang - Stasiun Semarang Tawang Bank Jateng', kode: 'SMT' },
+        { nama: 'Semarang - Stasiun Semarang Poncol', kode: 'SMC' },
+        { nama: 'Cepu - Stasiun Cepu', kode: 'CU' },
+        { nama: 'Randublatung - Stasiun Randublatung', kode: 'RBG' },
+        { nama: 'Ngrombo - Stasiun Ngrombo', kode: 'NBO' },
+        { nama: 'Bumiayu - Stasiun Bumiayu', kode: 'BMA' },
         { nama: 'Purwokerto - Stasiun Purwokerto', kode: 'PWT' },
-        { nama: 'Semarang - Stasiun Tawang', kode: 'SMT' },
-        { nama: 'Semarang - Stasiun Poncol', kode: 'SMC' },
-        { nama: 'Yogyakarta - Stasiun Tugu', kode: 'YK' },
+        { nama: 'Kroya - Stasiun Kroya', kode: 'KYA' },
+        { nama: 'Cilacap - Stasiun Cilacap', kode: 'CP' },
+        { nama: 'Sidareja - Stasiun Sidareja', kode: 'SDR' },
+        { nama: 'Gombong - Stasiun Gombong', kode: 'GB' },
+        { nama: 'Kebumen - Stasiun Kebumen', kode: 'KM' },
+        { nama: 'Kutoarjo - Stasiun Kutoarjo', kode: 'KTA' },
+        { nama: 'Wates - Stasiun Wates', kode: 'WT' },
+        { nama: 'Yogyakarta - Stasiun Yogyakarta (Tugu)', kode: 'YK' },
         { nama: 'Yogyakarta - Stasiun Lempuyangan', kode: 'LPN' },
+        { nama: 'Klaten - Stasiun Klaten', kode: 'KT' },
         { nama: 'Solo - Stasiun Solo Balapan', kode: 'SLO' },
-        { nama: 'Surabaya - Stasiun Gubeng', kode: 'SGU' },
-        { nama: 'Surabaya - Stasiun Pasar Turi', kode: 'SBI' },
-        { nama: 'Malang - Stasiun Malang', kode: 'ML' },
+        { nama: 'Solo - Stasiun Purwosari', kode: 'PWS' },
+        { nama: 'Solo - Stasiun Solo Jebres', kode: 'SK' },
+        { nama: 'Sragen - Stasiun Sragen', kode: 'SR' },
+        // Jawa Timur
+        { nama: 'Ngawi - Stasiun Ngawi', kode: 'NGW' },
+        { nama: 'Madiun - Stasiun Madiun', kode: 'MN' },
+        { nama: 'Caruban - Stasiun Caruban', kode: 'CRB' },
+        { nama: 'Nganjuk - Stasiun Nganjuk', kode: 'NJ' },
+        { nama: 'Kertosono - Stasiun Kertosono', kode: 'KTS' },
+        { nama: 'Jombang - Stasiun Jombang', kode: 'JG' },
+        { nama: 'Mojokerto - Stasiun Mojokerto', kode: 'MR' },
+        { nama: 'Kediri - Stasiun Kediri', kode: 'KD' },
+        { nama: 'Tulungagung - Stasiun Tulungagung', kode: 'TA' },
+        { nama: 'Blitar - Stasiun Blitar', kode: 'BL' },
+        { nama: 'Kepanjen - Stasiun Kepanjen', kode: 'KPN' },
+        { nama: 'Malang - Stasiun Malang Kotabaru', kode: 'ML' },
+        { nama: 'Malang - Stasiun Malang Kotalama', kode: 'MLK' },
+        { nama: 'Lawang - Stasiun Lawang', kode: 'LW' },
+        { nama: 'Bojonegoro - Stasiun Bojonegoro', kode: 'BJ' },
+        { nama: 'Babat - Stasiun Babat', kode: 'BBT' },
+        { nama: 'Lamongan - Stasiun Lamongan', kode: 'LMG' },
+        { nama: 'Surabaya - Stasiun Surabaya Gubeng', kode: 'SGU' },
+        { nama: 'Surabaya - Stasiun Surabaya Pasar Turi', kode: 'SBI' },
+        { nama: 'Surabaya - Stasiun Wonokromo', kode: 'WO' },
+        { nama: 'Sidoarjo - Stasiun Sidoarjo', kode: 'SDA' },
+        { nama: 'Bangil - Stasiun Bangil', kode: 'BG' },
+        { nama: 'Pasuruan - Stasiun Pasuruan', kode: 'PS' },
+        { nama: 'Probolinggo - Stasiun Probolinggo', kode: 'PB' },
+        { nama: 'Klakah - Stasiun Klakah', kode: 'KK' },
+        { nama: 'Tanggul - Stasiun Tanggul', kode: 'TGL' },
+        { nama: 'Rambipuji - Stasiun Rambipuji', kode: 'RBP' },
+        { nama: 'Jember - Stasiun Jember', kode: 'JR' },
+        { nama: 'Kalisetail - Stasiun Kalisetail', kode: 'KSL' },
+        { nama: 'Rogojampi - Stasiun Rogojampi', kode: 'RGP' },
+        { nama: 'Banyuwangi - Stasiun Banyuwangi Kota', kode: 'BWI' },
+        { nama: 'Banyuwangi - Stasiun Ketapang', kode: 'KTG' },
+        // Sumatera
         { nama: 'Medan - Stasiun Medan', kode: 'MDN' },
+        { nama: 'Deli Serdang - Stasiun Bandara Kualanamu', kode: 'KNM' },
+        { nama: 'Binjai - Stasiun Binjai', kode: 'BIJ' },
+        { nama: 'Tebing Tinggi - Stasiun Tebing Tinggi', kode: 'TBI' },
+        { nama: 'Pematangsiantar - Stasiun Siantar', kode: 'SIR' },
+        { nama: 'Kisaran - Stasiun Kisaran', kode: 'KIS' },
+        { nama: 'Tanjungbalai - Stasiun Tanjungbalai', kode: 'TNB' },
+        { nama: 'Rantau Prapat - Stasiun Rantau Prapat', kode: 'RAP' },
+        { nama: 'Padang - Stasiun Padang', kode: 'PD' },
+        { nama: 'Padang Pariaman - Stasiun Bandara Minangkabau', kode: 'BIM' },
+        { nama: 'Pariaman - Stasiun Pariaman', kode: 'PMN' },
         { nama: 'Palembang - Stasiun Kertapati', kode: 'KPT' },
-        { nama: 'Lampung - Stasiun Tanjungkarang', kode: 'TNK' }
+        { nama: 'Prabumulih - Stasiun Prabumulih', kode: 'PBM' },
+        { nama: 'Muara Enim - Stasiun Muara Enim', kode: 'ME' },
+        { nama: 'Lahat - Stasiun Lahat', kode: 'LT' },
+        { nama: 'Lubuklinggau - Stasiun Lubuklinggau', kode: 'LLG' },
+        { nama: 'Baturaja - Stasiun Baturaja', kode: 'BTA' },
+        { nama: 'Martapura - Stasiun Martapura', kode: 'MP' },
+        { nama: 'Kotabumi - Stasiun Kotabumi', kode: 'KB' },
+        { nama: 'Bandar Lampung - Stasiun Tanjungkarang', kode: 'TNK' }
       ],
+
       Bus: [
-        { nama: 'Pekanbaru (Terminal BRPS / Loket)', kode: 'PKU' },
-        { nama: 'Bangkinang (Kampar)', kode: 'BKN' },
-        { nama: 'Dumai', kode: 'DUM' },
-        { nama: 'Duri (Bengkalis)', kode: 'DUR' },
-        { nama: 'Rengat / Tembilahan', kode: 'RGT' },
-        { nama: 'Padang', kode: 'PDG' },
-        { nama: 'Bukittinggi / Payakumbuh', kode: 'BKT' },
-        { nama: 'Medan (Amplas / Gagak Hitam)', kode: 'MDN' },
-        { nama: 'Jambi', kode: 'JMB' },
-        { nama: 'Palembang', kode: 'PLG' },
-        { nama: 'Bandar Lampung', kode: 'LPG' },
-        { nama: 'Jakarta (Pulo Gebang / Kampung Rambutan / Kalideres)', kode: 'JKT' },
-        { nama: 'Bekasi / Tangerang / Bogor', kode: 'JBD' },
-        { nama: 'Bandung (Leuwi Panjang / Cicaheum)', kode: 'BDG' },
-        { nama: 'Semarang', kode: 'SMG' },
-        { nama: 'Yogyakarta', kode: 'YOG' },
-        { nama: 'Surabaya (Bungurasih)', kode: 'SBY' }
+        // Riau & Kepri
+        { nama: 'Pekanbaru - Terminal BRPS / Loket Arengka', kode: 'PKU' },
+        { nama: 'Bangkinang - Terminal Bangkinang (Kampar)', kode: 'BKN' },
+        { nama: 'Petapahan / Suram - Tapung Hulu (Kampar)', kode: 'PTP' },
+        { nama: 'Ujung Batu / Pasir Pengaraian (Rokan Hulu)', kode: 'PSP' },
+        { nama: 'Kandis / Minas (Siak)', kode: 'KDS' },
+        { nama: 'Perawang / Siak Sri Indrapura', kode: 'SAK' },
+        { nama: 'Duri - Mandau (Bengkalis)', kode: 'DUR' },
+        { nama: 'Dumai - Terminal Dumai', kode: 'DUM' },
+        { nama: 'Bagan Batu / Ujung Tanjung (Rokan Hilir)', kode: 'BGB' },
+        { nama: 'Pelalawan / Pangkalan Kerinci', kode: 'PKC' },
+        { nama: 'Sorek / Ukui (Pelalawan)', kode: 'SRK' },
+        { nama: 'Air Molek / Belilas (Indragiri Hulu)', kode: 'AML' },
+        { nama: 'Rengat - Terminal Pematang Reba', kode: 'RGT' },
+        { nama: 'Tembilahan (Indragiri Hilir)', kode: 'TBH' },
+        { nama: 'Teluk Kuantan (Kuantan Singingi)', kode: 'TLK' },
+        { nama: 'Batam - Terminal Jodoh / Batu Aji', kode: 'BTM' },
+        { nama: 'Tanjung Pinang (Bintan)', kode: 'TPI' },
+        // Sumatera Lainnya
+        { nama: 'Banda Aceh - Terminal Batoh', kode: 'BTJ' },
+        { nama: 'Sigli / Bireuen / Lhokseumawe', kode: 'LSW' },
+        { nama: 'Langsa / Kuala Simpang', kode: 'LGS' },
+        { nama: 'Meulaboh / Tapaktuan', kode: 'MEQ' },
+        { nama: 'Medan - Terminal Amplas', kode: 'MDN-A' },
+        { nama: 'Medan - Terminal Pinang Baris / Gagak Hitam', kode: 'MDN-P' },
+        { nama: 'Binjai / Stabat / Pangkalan Brandan', kode: 'BNJ' },
+        { nama: 'Tebing Tinggi / Pematangsiantar', kode: 'PMS' },
+        { nama: 'Parapat / Balige / Tarutung (Toba)', kode: 'PRP' },
+        { nama: 'Sibolga / Padangsidimpuan / Penyabungan', kode: 'PSP' },
+        { nama: 'Kisaran / Rantau Prapat / Kota Pinang', kode: 'RAP' },
+        { nama: 'Padang - Terminal Anak Air / Loket Bypass', kode: 'PDG' },
+        { nama: 'Bukittinggi - Terminal Aur Kuning', kode: 'BKT' },
+        { nama: 'Payakumbuh - Terminal Koto Nan Ampek', kode: 'PYK' },
+        { nama: 'Padang Panjang / Batusangkar', kode: 'PDP' },
+        { nama: 'Solok - Terminal Bareh Solok', kode: 'SLK' },
+        { nama: 'Sawahlunto / Sijunjung / Dharmasraya', kode: 'DHR' },
+        { nama: 'Painan / Pesisir Selatan', kode: 'PIN' },
+        { nama: 'Pasaman / Simpang Empat', kode: 'PSM' },
+        { nama: 'Jambi - Terminal Alam Barajo', kode: 'JMB' },
+        { nama: 'Muara Bungo / Bangko / Sarolangun', kode: 'MBO' },
+        { nama: 'Sungai Penuh / Kerinci', kode: 'SPN' },
+        { nama: 'Kuala Tungkal / Muara Sabak', kode: 'KTK' },
+        { nama: 'Palembang - Terminal Alang-Alang Lebar / Karya Jaya', kode: 'PLM' },
+        { nama: 'Prabumulih / Muara Enim / Lahat', kode: 'LHT' },
+        { nama: 'Lubuklinggau - Terminal Simpang Periuk', kode: 'LLG' },
+        { nama: 'Baturaja / Martapura (OKU)', kode: 'BTR' },
+        { nama: 'Kayu Agung / Indralaya', kode: 'KYG' },
+        { nama: 'Bengkulu - Terminal Air Sebakul', kode: 'BKS' },
+        { nama: 'Curup / Kepahiang / Mukomuko', kode: 'CRP' },
+        { nama: 'Bandar Lampung - Terminal Rajabasa', kode: 'BDL' },
+        { nama: 'Metro / Bandar Jaya / Kotabumi', kode: 'MTR' },
+        { nama: 'Kalianda / Bakauheni', kode: 'BKH' },
+        // Banten & Jabodetabek
+        { nama: 'Merak - Terminal Terpadu Merak', kode: 'MRK' },
+        { nama: 'Cilegon / Serang - Terminal Pakupatan', kode: 'SRG' },
+        { nama: 'Tangerang - Terminal Poris Plawad / BSD', kode: 'TNG' },
+        { nama: 'Jakarta Timur - Terminal Pulo Gebang', kode: 'PGD' },
+        { nama: 'Jakarta Timur - Terminal Kampung Rambutan', kode: 'KPR' },
+        { nama: 'Jakarta Barat - Terminal Kalideres / Grogol', kode: 'KLD' },
+        { nama: 'Jakarta Selatan - Terminal Lebak Bulus / Pasar Minggu', kode: 'LBK' },
+        { nama: 'Jakarta Utara - Terminal Tanjung Priok', kode: 'TPK' },
+        { nama: 'Bogor - Terminal Baranangsiang / Bubulak', kode: 'BGR' },
+        { nama: 'Depok - Terminal Jatijajar', kode: 'DPK' },
+        { nama: 'Bekasi - Terminal Induk Bekasi / Cikarang', kode: 'BKS' },
+        // Jawa Barat, Jateng, DIY & Jatim
+        { nama: 'Karawang / Purwakarta / Subang', kode: 'KRW' },
+        { nama: 'Bandung - Terminal Leuwi Panjang', kode: 'BDG-L' },
+        { nama: 'Bandung - Terminal Cicaheum', kode: 'BDG-C' },
+        { nama: 'Sumedang / Garut - Terminal Guntur', kode: 'GRT' },
+        { nama: 'Tasikmalaya - Terminal Indihiang', kode: 'TSM' },
+        { nama: 'Ciamis / Banjar / Pangandaran', kode: 'PND' },
+        { nama: 'Indramayu / Majalengka / Kuningan', kode: 'KNG' },
+        { nama: 'Cirebon - Terminal Harjamukti', kode: 'CRB' },
+        { nama: 'Brebes / Tegal / Pemalang / Pekalongan', kode: 'TGL' },
+        { nama: 'Semarang - Terminal Mangkang / Terboyo / Banyumanik', kode: 'SMG' },
+        { nama: 'Kudus / Pati / Jepara / Rembang', kode: 'KDS' },
+        { nama: 'Salatiga / Boyolali / Kartasura', kode: 'SLG' },
+        { nama: 'Solo - Terminal Tirtonadi', kode: 'SLO' },
+        { nama: 'Wonogiri / Sragen / Karanganyar', kode: 'WNG' },
+        { nama: 'Purwokerto - Terminal Bulupitu', kode: 'PWT' },
+        { nama: 'Cilacap / Kebumen / Purworejo', kode: 'CLP' },
+        { nama: 'Wonosobo / Temanggung / Magelang - Terminal Tidar', kode: 'MGL' },
+        { nama: 'Yogyakarta - Terminal Giwangan / Jombor', kode: 'YOG' },
+        { nama: 'Ngawi / Madiun - Terminal Purboyo', kode: 'MDN' },
+        { nama: 'Ponorogo / Pacitan / Trenggalek / Tulungagung', kode: 'PNR' },
+        { nama: 'Kediri / Blitar / Nganjuk / Jombang', kode: 'KDR' },
+        { nama: 'Bojonegoro / Tuban / Lamongan / Gresik', kode: 'TBN' },
+        { nama: 'Surabaya - Terminal Purabaya (Bungurasih) / Osowilangun', kode: 'SBY' },
+        { nama: 'Malang - Terminal Arjosari', kode: 'MLG' },
+        { nama: 'Pasuruan / Probolinggo / Lumajang', kode: 'PBL' },
+        { nama: 'Jember - Terminal Tawang Alun', kode: 'JBR' },
+        { nama: 'Situbondo / Bondowoso / Banyuwangi - Terminal Sri Tanjung', kode: 'BWI' },
+        { nama: 'Bangkalan / Sampang / Pamekasan / Sumenep (Madura)', kode: 'MDR' },
+        // Bali, NTB & Kalimantan
+        { nama: 'Gilimanuk / Singaraja / Denpasar - Terminal Mengwi', kode: 'DPS' },
+        { nama: 'Mataram - Terminal Mandalika (Lombok)', kode: 'MTR' },
+        { nama: 'Sumbawa Besar / Dompu / Bima', kode: 'BIM' },
+        { nama: 'Pontianak - Terminal Sei Ambawang / Singkawang', kode: 'PNK' },
+        { nama: 'Palangka Raya / Sampit / Pangkalan Bun', kode: 'PKY' },
+        { nama: 'Banjarmasin - Terminal Gambut Barakat / Banjarbaru', kode: 'BJM' },
+        { nama: 'Balikpapan - Terminal Batu Ampar', kode: 'BPN' },
+        { nama: 'Samarinda - Terminal Sungai Kunjang / Lempake', kode: 'SMD' },
+        // Sulawesi
+        { nama: 'Makassar - Terminal Daya / Malengkeri', kode: 'MKS' },
+        { nama: 'Parepare / Tana Toraja / Palopo', kode: 'TRJ' },
+        { nama: 'Mamuju / Palu / Kendari / Gorontalo / Manado', kode: 'MDC' }
       ],
       Kapal: [
-        { nama: 'Pelabuhan Dumai (Riau)', kode: 'DUM' },
-        { nama: 'Pelabuhan Bengkalis / Selatpanjang', kode: 'BKS' },
-        { nama: 'Pelabuhan Batam - Sekupang / Harbour Bay', kode: 'BTM' },
-        { nama: 'Pelabuhan Tanjung Pinang (Sri Bintan Pura)', kode: 'TPI' },
-        { nama: 'Pelabuhan Tanjung Balai Karimun', kode: 'TBK' },
+        // Sumatera & Kepri
+        { nama: 'Pelabuhan Ulee Lheue (Banda Aceh)', kode: 'ULH' },
+        { nama: 'Pelabuhan Balohan (Sabang)', kode: 'SBG' },
+        { nama: 'Pelabuhan Malahayati (Krueng Raya Aceh)', kode: 'MLH' },
+        { nama: 'Pelabuhan Singkil / Sinabang (Simeulue)', kode: 'SNB' },
         { nama: 'Pelabuhan Belawan (Medan)', kode: 'BLW' },
-        { nama: 'Pelabuhan Tanjung Priok (Jakarta)', kode: 'TPK' },
-        { nama: 'Pelabuhan Penyeberangan Merak (Banten)', kode: 'MRK' },
+        { nama: 'Pelabuhan Tanjung Balai Asahan', kode: 'TBA' },
+        { nama: 'Pelabuhan Sibolga', kode: 'SBG' },
+        { nama: 'Pelabuhan Gunungsitoli / Teluk Dalam (Nias)', kode: 'GNS' },
+        { nama: 'Pelabuhan Ajibata / Ambarita / Tigaras (Danau Toba)', kode: 'AJB' },
+        { nama: 'Pelabuhan Dumai (Riau)', kode: 'DUM' },
+        { nama: 'Pelabuhan Sungai Pakning / Bengkalis', kode: 'BKS' },
+        { nama: 'Pelabuhan Selatpanjang (Kepulauan Meranti)', kode: 'SLP' },
+        { nama: 'Pelabuhan Buton / Mengkapan (Siak)', kode: 'BTN' },
+        { nama: 'Pelabuhan Tembilahan / Kuala Enok (Inhil)', kode: 'TBH' },
+        { nama: 'Pelabuhan Batam - Sekupang', kode: 'BTM-S' },
+        { nama: 'Pelabuhan Batam - Harbour Bay', kode: 'BTM-H' },
+        { nama: 'Pelabuhan Batam - Batam Center', kode: 'BTM-B' },
+        { nama: 'Pelabuhan Batam - Telaga Punggur (Roro)', kode: 'BTM-P' },
+        { nama: 'Pelabuhan Tanjung Pinang - Sri Bintan Pura', kode: 'TPI' },
+        { nama: 'Pelabuhan Tanjung Uban (Bintan)', kode: 'TUB' },
+        { nama: 'Pelabuhan Tanjung Balai Karimun', kode: 'TBK' },
+        { nama: 'Pelabuhan Dabo Singkep / Jagoh (Lingga)', kode: 'DBS' },
+        { nama: 'Pelabuhan Tarempa / Letung (Anambas)', kode: 'TRP' },
+        { nama: 'Pelabuhan Sedanau / Selat Lampa (Natuna)', kode: 'NTN' },
+        { nama: 'Pelabuhan Teluk Bayur / Bungus (Padang)', kode: 'TLB' },
+        { nama: 'Pelabuhan Tua Pejat / Siberut (Mentawai)', kode: 'TPJ' },
+        { nama: 'Pelabuhan Kuala Tungkal (Jambi)', kode: 'KTK' },
+        { nama: 'Pelabuhan Boom Baru / Tanjung Api-Api (Palembang)', kode: 'PLM' },
+        { nama: 'Pelabuhan Muntok - Tanjung Kalian (Bangka)', kode: 'MTK' },
+        { nama: 'Pelabuhan Pangkal Balam (Pangkal Pinang)', kode: 'PKB' },
+        { nama: 'Pelabuhan Tanjung Pandan (Belitung)', kode: 'TJP' },
+        { nama: 'Pelabuhan Pulau Baai (Bengkulu)', kode: 'PBA' },
         { nama: 'Pelabuhan Penyeberangan Bakauheni (Lampung)', kode: 'BKH' },
-        { nama: 'Pelabuhan Tanjung Perak (Surabaya)', kode: 'TPR' },
+        { nama: 'Pelabuhan Panjang (Bandar Lampung)', kode: 'PJG' },
+        // Jawa
+        { nama: 'Pelabuhan Penyeberangan Merak (Banten)', kode: 'MRK' },
+        { nama: 'Pelabuhan Ciwandan (Cilegon)', kode: 'CWD' },
+        { nama: 'Pelabuhan Tanjung Priok (Jakarta)', kode: 'TPK' },
+        { nama: 'Pelabuhan Muara Angke / Marina Ancol (Kepulauan Seribu)', kode: 'MRA' },
+        { nama: 'Pelabuhan Cirebon', kode: 'CRB' },
         { nama: 'Pelabuhan Tanjung Emas (Semarang)', kode: 'TEM' },
-        { nama: 'Pelabuhan Ketapang (Banyuwangi)', kode: 'KTP' },
-        { nama: 'Pelabuhan Gilimanuk (Bali)', kode: 'GLM' },
+        { nama: 'Pelabuhan Kartini Jepara / Karimunjawa', kode: 'JPR' },
+        { nama: 'Pelabuhan Kendal', kode: 'KDL' },
+        { nama: 'Pelabuhan Tanjung Intan (Cilacap)', kode: 'CLP' },
+        { nama: 'Pelabuhan Tanjung Perak (Surabaya)', kode: 'TPR' },
+        { nama: 'Pelabuhan Gresik / Bawean', kode: 'GSK' },
+        { nama: 'Pelabuhan Jangkar (Situbondo)', kode: 'JKR' },
+        { nama: 'Pelabuhan Kalianget (Sumenep / Kangean / Sapeken)', kode: 'KLG' },
+        { nama: 'Pelabuhan Penyeberangan Ketapang (Banyuwangi)', kode: 'KTP' },
+        // Bali & Nusa Tenggara
+        { nama: 'Pelabuhan Penyeberangan Gilimanuk (Bali)', kode: 'GLM' },
+        { nama: 'Pelabuhan Benoa (Denpasar Bali)', kode: 'BOA' },
+        { nama: 'Pelabuhan Padangbai (Karangasem Bali)', kode: 'PDB' },
+        { nama: 'Pelabuhan Sanur / Kusamba (Nusa Penida / Lembongan)', kode: 'SNR' },
+        { nama: 'Pelabuhan Lembar (Lombok Barat)', kode: 'LMB' },
+        { nama: 'Pelabuhan Kayangan (Lombok Timur)', kode: 'KYG' },
+        { nama: 'Pelabuhan Bangsal / Teluk Nare (Gili Trawangan)', kode: 'BGS' },
+        { nama: 'Pelabuhan Poto Tano (Sumbawa Barat)', kode: 'PTT' },
+        { nama: 'Pelabuhan Badas (Sumbawa Besar)', kode: 'BDS' },
+        { nama: 'Pelabuhan Bima', kode: 'BMU' },
+        { nama: 'Pelabuhan Sape (Bima)', kode: 'SAP' },
+        { nama: 'Pelabuhan Labuan Bajo (Manggarai Barat)', kode: 'LBJ' },
+        { nama: 'Pelabuhan Ende / Ipi', kode: 'ENE' },
+        { nama: 'Pelabuhan Lorens Say (Maumere)', kode: 'MOF' },
+        { nama: 'Pelabuhan Larantuka', kode: 'LRT' },
+        { nama: 'Pelabuhan Lewoleba (Lembata)', kode: 'LWL' },
+        { nama: 'Pelabuhan Waikelo / Waingapu (Sumba)', kode: 'WGP' },
+        { nama: 'Pelabuhan Tenau / Bolok (Kupang)', kode: 'KOE' },
+        { nama: 'Pelabuhan Kalabahi (Alor)', kode: 'KLB' },
+        { nama: 'Pelabuhan Ba\'a (Rote)', kode: 'BAA' },
+        // Kalimantan
+        { nama: 'Pelabuhan Dwikora (Pontianak)', kode: 'PNK' },
+        { nama: 'Pelabuhan Sintete (Sambas)', kode: 'STT' },
+        { nama: 'Pelabuhan Kendawangan / Ketapang', kode: 'KTG' },
+        { nama: 'Pelabuhan Kumai (Pangkalan Bun)', kode: 'KMI' },
+        { nama: 'Pelabuhan Sampit', kode: 'SPT' },
+        { nama: 'Pelabuhan Bahaur (Pulang Pisau)', kode: 'BHR' },
+        { nama: 'Pelabuhan Trisakti (Banjarmasin)', kode: 'BJM' },
+        { nama: 'Pelabuhan Batulicin (Tanah Bumbu)', kode: 'BTW' },
+        { nama: 'Pelabuhan Stagen (Kotabaru)', kode: 'KTB' },
+        { nama: 'Pelabuhan Semayang / Kariangau (Balikpapan)', kode: 'BPN' },
+        { nama: 'Pelabuhan Samarinda', kode: 'SMD' },
+        { nama: 'Pelabuhan Lok Tuan (Bontang)', kode: 'BTG' },
+        { nama: 'Pelabuhan Malundung (Tarakan)', kode: 'TRK' },
+        { nama: 'Pelabuhan Tunon Taka (Nunukan)', kode: 'NNK' },
+        // Sulawesi
         { nama: 'Pelabuhan Soekarno-Hatta (Makassar)', kode: 'MKS' },
-        { nama: 'Pelabuhan Semayang (Balikpapan)', kode: 'BPN' }
+        { nama: 'Pelabuhan Nusantara (Parepare)', kode: 'PRE' },
+        { nama: 'Pelabuhan Garongkong (Barru)', kode: 'GRK' },
+        { nama: 'Pelabuhan Bira (Bulukumba)', kode: 'BIR' },
+        { nama: 'Pelabuhan Pamatata / Benteng (Selayar)', kode: 'SLY' },
+        { nama: 'Pelabuhan Bajoe (Bone)', kode: 'BJE' },
+        { nama: 'Pelabuhan Siwa (Wajo)', kode: 'SIW' },
+        { nama: 'Pelabuhan Belang-Belang (Mamuju)', kode: 'MMJ' },
+        { nama: 'Pelabuhan Pantoloan (Palu)', kode: 'PTL' },
+        { nama: 'Pelabuhan Donggala / Wani', kode: 'DGL' },
+        { nama: 'Pelabuhan Tolitoli', kode: 'TLI' },
+        { nama: 'Pelabuhan Luwuk / Pagimana (Banggai)', kode: 'LUW' },
+        { nama: 'Pelabuhan Kolonodale (Morowali Utara)', kode: 'KLD' },
+        { nama: 'Pelabuhan Bungku / Bahodopi (Morowali)', kode: 'BHD' },
+        { nama: 'Pelabuhan Nusantara / Bungkutoko (Kendari)', kode: 'KDI' },
+        { nama: 'Pelabuhan Kolaka', kode: 'KLK' },
+        { nama: 'Pelabuhan Murhum (Baubau)', kode: 'BUW' },
+        { nama: 'Pelabuhan Raha (Muna)', kode: 'RHA' },
+        { nama: 'Pelabuhan Wanci (Wakatobi)', kode: 'WNC' },
+        { nama: 'Pelabuhan Gorontalo / Anggrek / Marisa', kode: 'GTO' },
+        { nama: 'Pelabuhan Bitung', kode: 'BTG' },
+        { nama: 'Pelabuhan Manado', kode: 'MDO' },
+        { nama: 'Pelabuhan Tahuna (Sangihe)', kode: 'THN' },
+        { nama: 'Pelabuhan Lirung / Melonguane (Talaud)', kode: 'MLG' },
+        // Maluku & Papua
+        { nama: 'Pelabuhan Yos Sudarso (Ambon)', kode: 'AMB' },
+        { nama: 'Pelabuhan Tulehu / Liang (Ambon - Seram)', kode: 'TLH' },
+        { nama: 'Pelabuhan Namlea (Buru)', kode: 'NML' },
+        { nama: 'Pelabuhan Banda Naira', kode: 'BDN' },
+        { nama: 'Pelabuhan Tual', kode: 'TUL' },
+        { nama: 'Pelabuhan Dobo (Kepulauan Aru)', kode: 'DOB' },
+        { nama: 'Pelabuhan Saumlaki (Tanimbar)', kode: 'SML' },
+        { nama: 'Pelabuhan Ahmad Yani (Ternate)', kode: 'TTE' },
+        { nama: 'Pelabuhan Sofifi / Jailolo / Tobelo (Halmahera)', kode: 'SFF' },
+        { nama: 'Pelabuhan Babang (Bacan)', kode: 'BBG' },
+        { nama: 'Pelabuhan Daruba (Morotai)', kode: 'DRB' },
+        { nama: 'Pelabuhan Sanana (Kepulauan Sula)', kode: 'SNN' },
+        { nama: 'Pelabuhan Sorong', kode: 'SOQ' },
+        { nama: 'Pelabuhan Waisai (Raja Ampat)', kode: 'WSI' },
+        { nama: 'Pelabuhan Manokwari', kode: 'MKW' },
+        { nama: 'Pelabuhan Fakfak', kode: 'FKQ' },
+        { nama: 'Pelabuhan Kaimana', kode: 'KMN' },
+        { nama: 'Pelabuhan Wasior (Teluk Wondama)', kode: 'WSR' },
+        { nama: 'Pelabuhan Biak', kode: 'BIK' },
+        { nama: 'Pelabuhan Serui (Yapen)', kode: 'SRU' },
+        { nama: 'Pelabuhan Samabusa (Nabire)', kode: 'NBR' },
+        { nama: 'Pelabuhan Pomako (Timika)', kode: 'TMK' },
+        { nama: 'Pelabuhan Jayapura', kode: 'JYP' },
+        { nama: 'Pelabuhan Agats (Asmat)', kode: 'AGT' },
+        { nama: 'Pelabuhan Merauke', kode: 'MRK' },
+        // Internasional Dekat
+        { nama: 'Pelabuhan HarbourFront / Tanah Merah (Singapura)', kode: 'SIN' },
+        { nama: 'Pelabuhan Stulang Laut / Puteri Harbour (Johor)', kode: 'JHB' },
+        { nama: 'Pelabuhan Port Dickson / Melaka / Port Klang', kode: 'MKZ' }
       ]
     };
 
@@ -889,30 +1330,30 @@
       Pesawat: {
         asal: 'Bandara Asal (Dari)',
         tujuan: 'Bandara Tujuan (Ke)',
-        placeholder: 'Pilih atau ketik bandara...',
+        placeholder: 'Ketik kota atau kode bandara (mis. PKU, CGK)...',
         opLabel: 'Preferensi Maskapai (Klik Pilih)',
-        ops: ['Bebas', 'Garuda', 'Lion Air', 'Batik Air', 'Citilink', 'Super Air Jet', 'Pelita Air', 'AirAsia']
+        ops: ['Bebas', 'Garuda', 'Lion Air', 'Batik Air', 'Citilink', 'Super Air Jet', 'Pelita Air', 'Sriwijaya', 'Wings Air', 'AirAsia']
       },
       Kereta: {
         asal: 'Stasiun Keberangkatan (Dari)',
         tujuan: 'Stasiun Tujuan (Ke)',
-        placeholder: 'Pilih atau ketik stasiun...',
+        placeholder: 'Ketik kota atau nama stasiun...',
         opLabel: 'Preferensi Kelas KA (Klik Pilih)',
-        ops: ['Bebas', 'Eksekutif', 'Bisnis', 'Ekonomi', 'Luxury / Priority']
+        ops: ['Bebas', 'Eksekutif', 'Bisnis', 'Ekonomi', 'Luxury / Panoramic', 'Whoosh']
       },
       Bus: {
-        asal: 'Kota / Terminal Asal (Dari)',
-        tujuan: 'Kota / Terminal Tujuan (Ke)',
-        placeholder: 'Pilih atau ketik kota/terminal...',
+        asal: 'Terminal / Kota Asal (Dari)',
+        tujuan: 'Terminal / Kota Tujuan (Ke)',
+        placeholder: 'Ketik kota atau nama terminal...',
         opLabel: 'Preferensi PO Bus / Kelas (Klik Pilih)',
-        ops: ['Bebas', 'Eksekutif', 'VIP / Bisnis', 'SAN', 'ALS', 'NPM', 'Haryanto / Rosalia']
+        ops: ['Bebas', 'Eksekutif', 'VIP / Bisnis', 'Sleeper', 'SAN', 'ALS', 'NPM', 'Sempati Star', 'Haryanto', 'Rosalia Indah', 'Sinar Jaya', 'DAMRI']
       },
       Kapal: {
-        asal: 'Pelabuhan Asal (Dari)',
-        tujuan: 'Pelabuhan Tujuan (Ke)',
-        placeholder: 'Pilih atau ketik pelabuhan...',
+        asal: 'Pelabuhan / Dermaga Asal (Dari)',
+        tujuan: 'Pelabuhan / Dermaga Tujuan (Ke)',
+        placeholder: 'Ketik kota atau nama pelabuhan...',
         opLabel: 'Preferensi Operator Kapal (Klik Pilih)',
-        ops: ['Bebas', 'PELNI', 'Ferry Reguler', 'Ferry Eksekutif', 'Dumai Express']
+        ops: ['Bebas', 'PELNI', 'ASDP Ferry Reguler', 'Ferry Eksekutif', 'Dumai Express', 'BatamFast / Majestic', 'Dharma Lautan Utama']
       }
     };
 
@@ -975,6 +1416,7 @@
         syncPreferensiValue();
       });
     });
+
     renderOperatorChips('Pesawat');
 
     function setupAutocomplete(inputId, dropdownId) {
@@ -1159,7 +1601,7 @@
         panel = `
           <div class="bill-strip">
             <div>
-              <div class="hint" style="margin-top:0">Total Tagihan</div>
+            <div class="hint" style="margin-top:0">Total Tagihan</div>
               <div style="font-size:20px;font-weight:800">${formatRupiah(item.harga_jual)}</div>
             </div>
             ${item.batas_bayar ? `<div style="text-align:right"><div class="hint" style="margin-top:0;color:#b91c1c;font-weight:700">Batas Bayar</div><div style="font-size:13px;font-weight:700;color:#991b1b">${item.batas_bayar}</div></div>` : ''}
@@ -1185,7 +1627,8 @@
             ${item.etiket_url ? `<a href="${item.etiket_url}" target="_blank" class="btn-green" style="display:block;text-align:center;text-decoration:none">Unduh / Buka E-Tiket</a>` : ''}
           </div>
         `;
-    }
+      }
+
       return `
         <div class="status-card">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
@@ -1235,3 +1678,4 @@
   </script>
 </body>
 </html>
+    
