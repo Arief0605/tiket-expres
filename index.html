@@ -324,54 +324,6 @@
     textarea { min-height: 82px; resize: vertical; }
     .hint { font-size: 11.5px; color: var(--muted); margin-top: 5px; }
 
-    /* PREFERENSI CHIPS */
-    .pref-panel {
-      background: #f8fafc;
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 13px 14px;
-      margin-bottom: 15px;
-    }
-
-    .pref-group-label {
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #475569;
-      margin-bottom: 7px;
-    }
-
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin-bottom: 11px;
-    }
-
-    .chip-row:last-child { margin-bottom: 0; }
-
-    .pref-chip {
-      border: 1.5px solid #cbd5e1;
-      background: #ffffff;
-      color: #334155;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 6px 11px;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: 0.15s;
-    }
-
-    .pref-chip:hover {
-      border-color: var(--blue);
-      background: #f0f9ff;
-    }
-
-    .pref-chip.active {
-      background: var(--blue);
-      border-color: var(--blue);
-      color: #ffffff;
-    }
-
     .btn-submit {
       width: 100%;
       border: none;
@@ -634,7 +586,6 @@
 
           <form id="orderForm" autocomplete="off">
             <input type="hidden" id="modaInput" value="Pesawat" />
-            <input type="hidden" id="jamPreferensi" value="" />
 
             <!-- PILIHAN RUTE OTOMATIS ASAL & TUJUAN -->
             <div class="route-box">
@@ -664,20 +615,19 @@
               </div>
             </div>
 
-            <!-- PILIHAN PREFERENSI TINGGAL KLIK -->
-            <div class="pref-panel">
-              <div class="pref-group-label">Preferensi Waktu Berangkat (Klik Pilih)</div>
-              <div class="chip-row" id="waktuChips">
-                <button type="button" class="pref-chip" data-waktu="Pagi">Pagi</button>
-                <button type="button" class="pref-chip" data-waktu="Siang">Siang</button>
-                <button type="button" class="pref-chip" data-waktu="Sore">Sore</button>
-                <button type="button" class="pref-chip" data-waktu="Malam">Malam</button>
-                <button type="button" class="pref-chip" data-waktu="Bebas / Termurah">Bebas / Termurah</button>
+            <!-- PILIHAN PREFERENSI WAKTU & MASKAPAI/OPERATOR MODEL DROPDOWN SEPERTI BANDARA -->
+            <div class="grid-2">
+              <div class="field ac-wrap">
+                <label for="waktuInput">Preferensi Waktu Berangkat</label>
+                <input type="text" id="waktuInput" placeholder="Pilih waktu berangkat..." />
+                <div id="waktuDropdown" class="ac-list hidden"></div>
               </div>
 
-              <div class="pref-group-label" id="labelPilihanOperator">Preferensi Maskapai (Klik Pilih)</div>
-              <div class="chip-row" id="operatorChips"></div>
-              <div class="hint" id="prefRingkasan">Pilihan terpilih: Bebas / Belum dipilih</div>
+              <div class="field ac-wrap">
+                <label for="operatorInput" id="labelPilihanOperator">Preferensi Maskapai</label>
+                <input type="text" id="operatorInput" placeholder="Pilih maskapai..." />
+                <div id="operatorDropdown" class="ac-list hidden"></div>
+              </div>
             </div>
 
             <div class="grid-2">
@@ -792,7 +742,7 @@
     // === KONFIGURASI SUPABASE & REKENING / E-WALLET ===
     const SUPABASE_URL = 'https://ezzxndbjbbvlptetrcxo.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6enhuZGJqYmJ2bHB0ZXRyY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwODYzMDksImV4cCI6MjExMDY2MjMwOX0.iLJk-rer6VwK_sckmbii8NGS6lmDdlgHHfM0d1X6awU';
-    
+
     const PAYMENT_METHODS = [
       { bank: 'BRI', nomor: '2250 0100 5337 534', nama: 'ARIEF' },
       { bank: 'SeaBank', nomor: '901332160185', nama: 'ARIEF' },
@@ -801,8 +751,15 @@
 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let lastCreatedCode = '';
-    let selectedWaktu = '';
-    let selectedOperator = '';
+
+    // === PILIHAN WAKTU BERANGKAT ===
+    const WAKTU_LIST = [
+      { nama: 'Pagi (05:00 – 11:00)', kode: 'PAGI' },
+      { nama: 'Siang (11:00 – 15:00)', kode: 'SIANG' },
+      { nama: 'Sore (15:00 – 18:30)', kode: 'SORE' },
+      { nama: 'Malam (18:30 – 24:00)', kode: 'MALAM' },
+      { nama: 'Bebas / Cari Termurah', kode: 'BEBAS' }
+    ];
 
     // === DATABASE LENGKAP BANDARA, STASIUN, TERMINAL & PELABUHAN SELURUH INDONESIA ===
     const MASTER_RUTE = {
@@ -951,7 +908,6 @@
         { nama: 'Jeddah - King Abdulaziz', kode: 'JED' },
         { nama: 'Madinah - Prince Mohammad Bin Abdulaziz', kode: 'MED' }
       ],
-
       Kereta: [
         // Jabodetabek & Banten
         { nama: 'Jakarta - Stasiun Gambir', kode: 'GMR' },
@@ -1331,101 +1287,83 @@
         asal: 'Bandara Asal (Dari)',
         tujuan: 'Bandara Tujuan (Ke)',
         placeholder: 'Ketik kota atau kode bandara (mis. PKU, CGK)...',
-        opLabel: 'Preferensi Maskapai (Klik Pilih)',
-        ops: ['Bebas', 'Garuda', 'Lion Air', 'Batik Air', 'Citilink', 'Super Air Jet', 'Pelita Air', 'Sriwijaya', 'Wings Air', 'AirAsia']
+        opLabel: 'Preferensi Maskapai',
+        opPlaceholder: 'Pilih maskapai...',
+        ops: [
+          { nama: 'Bebas / Cari Termurah', kode: 'BEBAS' },
+          { nama: 'Garuda Indonesia', kode: 'GA' },
+          { nama: 'Lion Air', kode: 'JT' },
+          { nama: 'Batik Air', kode: 'ID' },
+          { nama: 'Citilink', kode: 'QG' },
+          { nama: 'Super Air Jet', kode: 'IU' },
+          { nama: 'Pelita Air', kode: 'IP' },
+          { nama: 'Sriwijaya Air', kode: 'SJ' },
+          { nama: 'NAM Air', kode: 'IN' },
+          { nama: 'Wings Air', kode: 'IW' },
+          { nama: 'TransNusa', kode: '8B' },
+          { nama: 'AirAsia', kode: 'QZ' }
+        ]
       },
       Kereta: {
         asal: 'Stasiun Keberangkatan (Dari)',
         tujuan: 'Stasiun Tujuan (Ke)',
         placeholder: 'Ketik kota atau nama stasiun...',
-        opLabel: 'Preferensi Kelas KA (Klik Pilih)',
-        ops: ['Bebas', 'Eksekutif', 'Bisnis', 'Ekonomi', 'Luxury / Panoramic', 'Whoosh']
+        opLabel: 'Preferensi Kelas Kereta',
+        opPlaceholder: 'Pilih kelas kereta...',
+        ops: [
+          { nama: 'Bebas / Cari Termurah', kode: 'BEBAS' },
+          { nama: 'Eksekutif', kode: 'EKS' },
+          { nama: 'Bisnis', kode: 'BIS' },
+          { nama: 'Ekonomi', kode: 'EKO' },
+          { nama: 'Luxury / Compartment / Panoramic', kode: 'LUX' },
+          { nama: 'Kereta Cepat Whoosh', kode: 'KCIC' }
+        ]
       },
       Bus: {
         asal: 'Terminal / Kota Asal (Dari)',
         tujuan: 'Terminal / Kota Tujuan (Ke)',
         placeholder: 'Ketik kota atau nama terminal...',
-        opLabel: 'Preferensi PO Bus / Kelas (Klik Pilih)',
-        ops: ['Bebas', 'Eksekutif', 'VIP / Bisnis', 'Sleeper', 'SAN', 'ALS', 'NPM', 'Sempati Star', 'Haryanto', 'Rosalia Indah', 'Sinar Jaya', 'DAMRI']
+        opLabel: 'Preferensi PO Bus / Kelas',
+        opPlaceholder: 'Pilih PO bus atau kelas...',
+        ops: [
+          { nama: 'Bebas / Cari Termurah', kode: 'BEBAS' },
+          { nama: 'Kelas Eksekutif', kode: 'EKS' },
+          { nama: 'Kelas VIP / Bisnis', kode: 'VIP' },
+          { nama: 'Sleeper Bus', kode: 'SLP' },
+          { nama: 'PO SAN (Siliwangi Antar Nusa)', kode: 'SAN' },
+          { nama: 'PO ALS (Antar Lintas Sumatera)', kode: 'ALS' },
+          { nama: 'PO NPM', kode: 'NPM' },
+          { nama: 'PO Sempati Star', kode: 'SMP' },
+          { nama: 'PO Putra Pelangi', kode: 'PPL' },
+          { nama: 'PO Haryanto', kode: 'HRY' },
+          { nama: 'PO Rosalia Indah', kode: 'RSL' },
+          { nama: 'PO Sinar Jaya', kode: 'SNJ' },
+          { nama: 'DAMRI', kode: 'DMR' }
+        ]
       },
       Kapal: {
         asal: 'Pelabuhan / Dermaga Asal (Dari)',
         tujuan: 'Pelabuhan / Dermaga Tujuan (Ke)',
         placeholder: 'Ketik kota atau nama pelabuhan...',
-        opLabel: 'Preferensi Operator Kapal (Klik Pilih)',
-        ops: ['Bebas', 'PELNI', 'ASDP Ferry Reguler', 'Ferry Eksekutif', 'Dumai Express', 'BatamFast / Majestic', 'Dharma Lautan Utama']
+        opLabel: 'Preferensi Operator Kapal',
+        opPlaceholder: 'Pilih operator kapal...',
+        ops: [
+          { nama: 'Bebas / Cari Termurah', kode: 'BEBAS' },
+          { nama: 'KM PELNI', kode: 'PELNI' },
+          { nama: 'ASDP Ferry Reguler', kode: 'ASDP' },
+          { nama: 'Ferry Eksekutif', kode: 'EKS' },
+          { nama: 'Dumai Express / Dumai Line', kode: 'DMX' },
+          { nama: 'BatamFast / Majestic Fast Ferry', kode: 'BTM' },
+          { nama: 'Dharma Lautan Utama (DLU)', kode: 'DLU' }
+        ]
       }
     };
-
-    function renderOperatorChips(moda) {
-      const meta = MODA_META[moda];
-      document.getElementById('labelPilihanOperator').textContent = meta.opLabel;
-      const wrap = document.getElementById('operatorChips');
-
-      wrap.innerHTML = meta.ops.map(op => `
-        <button type="button" class="pref-chip ${selectedOperator === op ? 'active' : ''}" data-op="${op}">${op}</button>
-      `).join('');
-
-      wrap.querySelectorAll('.pref-chip').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const val = btn.dataset.op;
-          selectedOperator = selectedOperator === val ? '' : val;
-          renderOperatorChips(document.getElementById('modaInput').value);
-          syncPreferensiValue();
-        });
-      });
-    }
-
-    document.querySelectorAll('#waktuChips .pref-chip').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const val = btn.dataset.waktu;
-        selectedWaktu = selectedWaktu === val ? '' : val;
-        document.querySelectorAll('#waktuChips .pref-chip').forEach(b => {
-          b.classList.toggle('active', b.dataset.waktu === selectedWaktu);
-        });
-        syncPreferensiValue();
-      });
-    });
-
-    function syncPreferensiValue() {
-      const parts = [selectedWaktu, selectedOperator].filter(Boolean);
-      const gabungan = parts.join(' • ');
-      document.getElementById('jamPreferensi').value = gabungan;
-      document.getElementById('prefRingkasan').textContent =
-        gabungan ? `Pilihan terpilih: ${gabungan}` : 'Pilihan terpilih: Bebas / Belum dipilih';
-    }
-
-    document.querySelectorAll('.moda-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.moda-item').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const moda = btn.dataset.moda;
-        document.getElementById('modaInput').value = moda;
-
-        const meta = MODA_META[moda];
-        document.getElementById('labelAsal').textContent = meta.asal;
-        document.getElementById('labelTujuan').textContent = meta.tujuan;
-        document.getElementById('asalInput').placeholder = meta.placeholder;
-        document.getElementById('tujuanInput').placeholder = meta.placeholder;
-
-        document.getElementById('asalInput').value = '';
-        document.getElementById('tujuanInput').value = '';
-
-        selectedOperator = '';
-        renderOperatorChips(moda);
-        syncPreferensiValue();
-      });
-    });
-
-    renderOperatorChips('Pesawat');
-
-    function setupAutocomplete(inputId, dropdownId) {
+    function setupDropdownList(inputId, dropdownId, getItemsFn, formatValFn) {
       const input = document.getElementById(inputId);
       const dropdown = document.getElementById(dropdownId);
 
       function renderOptions(keyword = '') {
-        const moda = document.getElementById('modaInput').value;
-        const list = MASTER_RUTE[moda] || [];
+        const list = getItemsFn();
         const q = keyword.toLowerCase().trim();
         const filtered = list.filter(item =>
           item.nama.toLowerCase().includes(q) || item.kode.toLowerCase().includes(q)
@@ -1437,7 +1375,7 @@
         }
 
         dropdown.innerHTML = filtered.map(item => `
-          <div class="ac-item" data-val="${item.nama} (${item.kode})">
+          <div class="ac-item" data-val="${formatValFn(item)}">
             <span>${item.nama}</span>
             <span class="ac-code">${item.kode}</span>
           </div>
@@ -1454,15 +1392,64 @@
         dropdown.classList.remove('hidden');
       }
 
-      input.addEventListener('focus', () => renderOptions(input.value));
+      input.addEventListener('focus', () => renderOptions(''));
       input.addEventListener('input', () => renderOptions(input.value));
       input.addEventListener('blur', () => {
         setTimeout(() => dropdown.classList.add('hidden'), 150);
       });
     }
 
-    setupAutocomplete('asalInput', 'asalDropdown');
-    setupAutocomplete('tujuanInput', 'tujuanDropdown');
+    // Setup Asal & Tujuan
+    setupDropdownList(
+      'asalInput',
+      'asalDropdown',
+      () => MASTER_RUTE[document.getElementById('modaInput').value] || [],
+      item => `${item.nama} (${item.kode})`
+    );
+
+    setupDropdownList(
+      'tujuanInput',
+      'tujuanDropdown',
+      () => MASTER_RUTE[document.getElementById('modaInput').value] || [],
+      item => `${item.nama} (${item.kode})`
+    );
+
+    // Setup Preferensi Waktu & Maskapai/Operator (Model dropdown sama persis)
+    setupDropdownList(
+      'waktuInput',
+      'waktuDropdown',
+      () => WAKTU_LIST,
+      item => item.nama
+    );
+
+    setupDropdownList(
+      'operatorInput',
+      'operatorDropdown',
+      () => (MODA_META[document.getElementById('modaInput').value] || MODA_META.Pesawat).ops,
+      item => item.nama
+    );
+
+    // Ganti Moda Transportasi
+    document.querySelectorAll('.moda-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.moda-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const moda = btn.dataset.moda;
+        document.getElementById('modaInput').value = moda;
+
+        const meta = MODA_META[moda];
+        document.getElementById('labelAsal').textContent = meta.asal;
+        document.getElementById('labelTujuan').textContent = meta.tujuan;
+        document.getElementById('asalInput').placeholder = meta.placeholder;
+        document.getElementById('tujuanInput').placeholder = meta.placeholder;
+        document.getElementById('labelPilihanOperator').textContent = meta.opLabel;
+        document.getElementById('operatorInput').placeholder = meta.opPlaceholder;
+
+        document.getElementById('asalInput').value = '';
+        document.getElementById('tujuanInput').value = '';
+        document.getElementById('operatorInput').value = '';
+      });
+    });
 
     function swapRute() {
       const asal = document.getElementById('asalInput');
@@ -1502,13 +1489,17 @@
       const tujuan = document.getElementById('tujuanInput').value.trim();
       const ruteGabungan = `${asal} → ${tujuan}`;
 
+      const waktuVal = document.getElementById('waktuInput').value.trim();
+      const opVal = document.getElementById('operatorInput').value.trim();
+      const prefGabungan = [waktuVal, opVal].filter(Boolean).join(' • ') || 'Bebas';
+
       const kodeOrder = generateOrderCode();
       const payload = {
         kode_order: kodeOrder,
         moda: document.getElementById('modaInput').value,
         rute: ruteGabungan,
         tanggal_berangkat: document.getElementById('tanggal').value,
-        jam_preferensi: document.getElementById('jamPreferensi').value.trim() || 'Bebas',
+        jam_preferensi: prefGabungan,
         jumlah_penumpang: parseInt(document.getElementById('jumlahPenumpang').value, 10),
         nama_pemesan: document.getElementById('namaPemesan').value.trim(),
         no_hp: document.getElementById('noHp').value.trim(),
@@ -1529,11 +1520,6 @@
       document.getElementById('createdKodeText').textContent = kodeOrder;
       document.getElementById('orderCreatedBox').classList.remove('hidden');
       document.getElementById('orderForm').reset();
-      selectedWaktu = '';
-      selectedOperator = '';
-      document.querySelectorAll('#waktuChips .pref-chip').forEach(b => b.classList.remove('active'));
-      renderOperatorChips(document.getElementById('modaInput').value);
-      syncPreferensiValue();
     });
 
     function goToCreatedOrder() {
@@ -1601,7 +1587,7 @@
         panel = `
           <div class="bill-strip">
             <div>
-            <div class="hint" style="margin-top:0">Total Tagihan</div>
+              <div class="hint" style="margin-top:0">Total Tagihan</div>
               <div style="font-size:20px;font-weight:800">${formatRupiah(item.harga_jual)}</div>
             </div>
             ${item.batas_bayar ? `<div style="text-align:right"><div class="hint" style="margin-top:0;color:#b91c1c;font-weight:700">Batas Bayar</div><div style="font-size:13px;font-weight:700;color:#991b1b">${item.batas_bayar}</div></div>` : ''}
@@ -1643,7 +1629,6 @@
         </div>
       `;
     }
-
     async function uploadBuktiBayar(orderId) {
       const fileInput = document.getElementById(`file-${orderId}`);
       const btn = document.getElementById(`btn-upload-${orderId}`);
@@ -1678,4 +1663,3 @@
   </script>
 </body>
 </html>
-    
