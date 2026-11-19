@@ -88,6 +88,23 @@
       border-color: var(--blue);
     }
 
+    .btn-history {
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 11px;
+      cursor: pointer;
+    }
+
+    .btn-history.active {
+      background: #ecfdf5;
+      color: #065f46;
+      border-color: #a7f3d0;
+    }
+
     .btn-refresh {
       border: none;
       background: #ffffff;
@@ -131,6 +148,21 @@
     .stat-card.profit .stat-label { color: #047857; }
     .stat-val { font-size: 18px; font-weight: 800; margin-top: 4px; }
     .stat-card.profit .stat-val { color: #065f46; }
+
+    .section-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      font-weight: 700;
+    }
 
     /* ORDER CARDS */
     .order-card {
@@ -179,6 +211,7 @@
     }
 
     .tag.status { background: #e2e8f0; color: #1e293b; }
+    .tag.selesai { background: #d1fae5; color: #065f46; }
 
     .btn-wa {
       text-decoration: none;
@@ -212,6 +245,23 @@
       padding: 11px 13px;
       font-size: 12.5px;
       white-space: pre-line;
+    }
+
+    .history-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 12.5px;
+    }
+
+    .history-meta a {
+      color: var(--blue-dark);
+      font-weight: 700;
+      text-decoration: none;
     }
 
     .work-grid {
@@ -300,7 +350,7 @@
     .hidden { display: none !important; }
 
     @media (max-width: 720px) {
-      .work-grid { grid-template-columns: 1fr; }
+      .work-grid, .history-meta { grid-template-columns: 1fr; }
       .stats-grid { grid-template-columns: 1fr; }
     }
 
@@ -333,13 +383,14 @@
           <p>Pesawat • Kereta Api • Bus • Kapal Laut</p>
         </div>
         <div class="toolbar">
-          <select id="filterStatus" onchange="loadOrders()">
-            <option value="ALL">Filter: Semua Status</option>
+          <button type="button" id="btnRiwayat" class="btn-history" onclick="toggleRiwayat()">Riwayat Tiket (<span id="riwayatCount">0</span>)</button>
+          <select id="filterStatus" onchange="onFilterChange()">
+            <option value="AKTIF">Pesanan Aktif (Tanpa Selesai)</option>
             <option value="Cek Harga">Cek Harga</option>
             <option value="Menunggu Bayar">Menunggu Bayar</option>
             <option value="Verifikasi">Verifikasi Bukti Bayar</option>
-            <option value="Selesai">Selesai</option>
             <option value="Batal">Batal</option>
+            <option value="Selesai">Riwayat: Selesai</option>
           </select>
           <button type="button" class="btn-refresh" onclick="loadOrders()">↻ Refresh</button>
         </div>
@@ -362,6 +413,11 @@
         </div>
       </div>
 
+      <div id="sectionBanner" class="section-banner">
+        <span id="bannerTitle">Daftar Pesanan Aktif</span>
+        <span id="bannerSub" style="font-size:12px;color:#64748b">Tiket yang sudah terbit otomatis masuk ke Riwayat Tiket</span>
+      </div>
+
       <div id="feedbackBox" class="feedback-bar hidden"></div>
       <div id="ordersList"></div>
     </main>
@@ -369,13 +425,11 @@
 
   <script>
     // === KONFIGURASI ===
-    const SUPABASE_URL = 'https://ezzxndbjbbvlptetrcxo.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6enhuZGJqYmJ2bHB0ZXRyY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwODYzMDksImV4cCI6MjExMDY2MjMwOX0.iLJk-rer6VwK_sckmbii8NGS6lmDdlgHHfM0d1X6awU';
-    
-    const ADMIN_PIN = '280901'; // Ganti PIN kamu
+    const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const ADMIN_PIN = '123456'; // Ganti PIN kamu
 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let ordersCache = [];
 
     if (sessionStorage.getItem('te_admin_ok') === '1') {
       showDashboard();
@@ -405,7 +459,6 @@
       return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
     }
 
-    // Ambil angka murni saja meski admin mengetik titik/spasi/Rp
     function parseAngka(val) {
       const bersih = String(val || '').replace(/[^\d]/g, '');
       return Number(bersih || 0);
@@ -418,36 +471,119 @@
       if (el) el.textContent = `Untung: ${formatRupiah(jual - pokok)}`;
     }
 
+    function toggleRiwayat() {
+      const selectEl = document.getElementById('filterStatus');
+      selectEl.value = selectEl.value === 'Selesai' ? 'AKTIF' : 'Selesai';
+      loadOrders();
+    }
+
+    function onFilterChange() {
+      loadOrders();
+    }
+
     async function loadOrders() {
       const filter = document.getElementById('filterStatus').value;
-      let q = db.from('ticket_orders').select('*').order('created_at', { ascending: false });
-      if (filter !== 'ALL') q = q.eq('status', filter);
+      const { data, error } = await db.from('ticket_orders').select('*').order('created_at', { ascending: false });
 
-      const { data, error } = await q;
       if (error) {
         showFeedback('Gagal memuat pesanan: ' + error.message, true);
         return;
       }
 
-      ordersCache = data || [];
-      const selesai = ordersCache.filter(o => o.status === 'Selesai');
-      const omzet = selesai.reduce((s, o) => s + Number(o.harga_jual || 0), 0);
-      const modal = selesai.reduce((s, o) => s + Number(o.harga_pokok || 0), 0);
+      const allOrders = data || [];
+      const selesaiList = allOrders.filter(o => o.status === 'Selesai');
+      const aktifList = allOrders.filter(o => o.status !== 'Selesai');
+
+      document.getElementById('riwayatCount').textContent = selesaiList.length;
+
+      const omzet = selesaiList.reduce((s, o) => s + Number(o.harga_jual || 0), 0);
+      const modal = selesaiList.reduce((s, o) => s + Number(o.harga_pokok || 0), 0);
 
       document.getElementById('statOmzet').textContent = formatRupiah(omzet);
       document.getElementById('statModal').textContent = formatRupiah(modal);
       document.getElementById('statUntung').textContent = formatRupiah(omzet - modal);
 
+      const isHistoryView = filter === 'Selesai';
+      document.getElementById('btnRiwayat').classList.toggle('active', isHistoryView);
+
+      let displayed = aktifList;
+      if (filter === 'Selesai') {
+        displayed = selesaiList;
+        document.getElementById('bannerTitle').textContent = 'Riwayat Tiket Terbit (Arsip Selesai)';
+        document.getElementById('bannerSub').textContent = `${selesaiList.length} tiket tersimpan sebagai arsip`;
+      } else if (filter === 'AKTIF') {
+        displayed = aktifList;
+        document.getElementById('bannerTitle').textContent = 'Daftar Pesanan Aktif';
+        document.getElementById('bannerSub').textContent = 'Tiket yang sudah diterbitkan otomatis keluar dari daftar aktif';
+      } else {
+        displayed = allOrders.filter(o => o.status === filter);
+        document.getElementById('bannerTitle').textContent = `Filter Status: ${filter}`;
+        document.getElementById('bannerSub').textContent = `${displayed.length} pesanan ditemukan`;
+      }
+
       const listEl = document.getElementById('ordersList');
-      if (!ordersCache.length) {
-        listEl.innerHTML = '<div class="order-card" style="text-align:center;color:#64748b;font-size:13px">Belum ada pesanan pada filter ini.</div>';
+      if (!displayed.length) {
+        listEl.innerHTML = `<div class="order-card" style="text-align:center;color:#64748b;font-size:13px">${
+          isHistoryView ? 'Belum ada riwayat tiket selesai.' : 'Tidak ada pesanan aktif pada tampilan ini.'
+        }</div>`;
         return;
       }
 
-      listEl.innerHTML = ordersCache.map(renderCard).join('');
+      listEl.innerHTML = displayed.map(o => isHistoryView ? renderHistoryCard(o) : renderActiveCard(o)).join('');
     }
 
-    function renderCard(o) {
+    function renderHistoryCard(o) {
+      const untung = Number(o.harga_jual || 0) - Number(o.harga_pokok || 0);
+      const hpClean = o.no_hp.replace(/^0/, '62').replace(/\D/g, '');
+      const waMsg = encodeURIComponent(`Halo ${o.nama_pemesan}, e-tiket ${o.moda} (${o.rute}) kode *${o.kode_order}* dengan kode booking *${o.kode_booking || '-'}* sudah terbit. Silakan cek di website kami.`);
+
+      return `
+        <div class="order-card">
+          <div class="order-head">
+            <div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px">
+                <span class="mono" style="font-size:13px">${o.kode_order}</span>
+                <span class="tag">${o.moda}</span>
+                <span class="tag selesai">Selesai</span>
+              </div>
+              <div style="font-size:16px;font-weight:800">${o.rute}</div>
+              <div style="font-size:12.5px;color:#64748b;margin-top:2px">
+                Tgl: <b>${o.tanggal_berangkat}</b> • ${o.jumlah_penumpang} Penumpang • Pemesan: <b>${o.nama_pemesan}</b> (${o.no_hp})
+              </div>
+            </div>
+
+            <div class="head-actions">
+              <a href="https://wa.me/${hpClean}?text=${waMsg}" target="_blank" class="btn-wa">Chat WA</a>
+              <button type="button" class="btn-delete" onclick="hapusPesanan('${o.id}')">Hapus</button>
+            </div>
+          </div>
+
+          <div class="pax-box">${o.data_penumpang}</div>
+
+          <div class="history-meta">
+            <div>
+              <div style="font-size:11px;color:#64748b;font-weight:700">Kode Booking / PNR</div>
+              <div class="mono" style="font-size:13px;margin-top:2px">${o.kode_booking || '-'}</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:#64748b;font-weight:700">Jual / Modal / Untung</div>
+              <div style="font-size:12px;font-weight:700;margin-top:2px">
+                ${formatRupiah(o.harga_jual)} / ${formatRupiah(o.harga_pokok)} (<span style="color:#047857">${formatRupiah(untung)}</span>)
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:#64748b;font-weight:700">File &amp; Bukti</div>
+              <div style="margin-top:2px;display:flex;gap:10px;flex-wrap:wrap">
+                ${o.etiket_url ? `<a href="${o.etiket_url}" target="_blank">Buka E-Tiket ↗</a>` : '<span style="color:#94a3b8">Tanpa file</span>'}
+                ${o.bukti_bayar_url ? `<a href="${o.bukti_bayar_url}" target="_blank">Bukti Bayar ↗</a>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderActiveCard(o) {
       const untung = Number(o.harga_jual || 0) - Number(o.harga_pokok || 0);
       const hpClean = o.no_hp.replace(/^0/, '62').replace(/\D/g, '');
       const waMsg = encodeURIComponent(`Halo ${o.nama_pemesan}, pesanan tiket ${o.moda} (${o.rute}) kode *${o.kode_order}* sudah diperbarui. Silakan cek tagihan/tiket di website kami.`);
@@ -488,7 +624,7 @@
 
           <div class="work-grid">
             <div class="box-panel">
-              <div class="panel-title">1. Atur Harga Pokok, Jual & Batas Bayar</div>
+              <div class="panel-title">1. Atur Harga Pokok, Jual &amp; Batas Bayar</div>
               <div class="row-2">
                 <div class="field">
                   <label>Harga Pokok (Angka Saja)</label>
@@ -507,13 +643,13 @@
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px">
                 <span id="untung-${o.id}" style="font-size:12px;font-weight:800;color:#047857">Untung: ${formatRupiah(untung)}</span>
-                <button type="button" class="btn-blue" id="btn-tagihan-${o.id}" onclick="kirimTagihan('${o.id}')">Simpan & Kirim Tagihan</button>
+                <button type="button" class="btn-blue" id="btn-tagihan-${o.id}" onclick="kirimTagihan('${o.id}')">Simpan &amp; Kirim Tagihan</button>
               </div>
             </div>
 
             <div class="box-panel">
               <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center">
-                <span>2. Bukti Bayar & Terbit E-Tiket</span>
+                <span>2. Bukti Bayar &amp; Terbit E-Tiket</span>
                 ${o.bukti_bayar_url ? `<a href="${o.bukti_bayar_url}" target="_blank" style="font-size:12px;font-weight:700;color:#0369a1">Lihat Bukti Bayar ↗</a>` : '<span style="font-size:11px;color:#94a3b8">Belum upload bukti</span>'}
               </div>
 
@@ -549,7 +685,11 @@
         return;
       }
 
-      showFeedback(`Status pesanan diperbarui menjadi "${statusBaru}".`);
+      if (statusBaru === 'Selesai') {
+        showFeedback('Status diubah ke "Selesai" & dipindahkan ke Riwayat Tiket.');
+      } else {
+        showFeedback(`Status pesanan diperbarui menjadi "${statusBaru}".`);
+      }
       loadOrders();
     }
 
@@ -639,7 +779,7 @@
         return;
       }
 
-      showFeedback('Tiket berhasil diterbitkan & status diubah ke "Selesai".');
+      showFeedback('Tiket berhasil diterbitkan & dipindahkan ke Riwayat Tiket.');
       loadOrders();
     }
 
@@ -667,7 +807,7 @@
         .select();
 
       if (error) {
-        showFeedback('Gagal hapus pesanan: ' + error.message + ' (Pastikan SQL grant delete sudah dijalankan di Supabase)', true);
+        showFeedback('Gagal hapus pesanan: ' + error.message, true);
         return;
       }
 
