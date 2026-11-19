@@ -71,7 +71,7 @@
     .topbar h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
     .topbar p { font-size: 12px; color: #e0f2fe; }
 
-    .toolbar { display: flex; gap: 8px; align-items: center; }
+    .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
     select, input {
       border: 1.5px solid #cbd5e1;
@@ -152,6 +152,21 @@
       border-bottom: 1px solid var(--border);
     }
 
+    .head-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status-select {
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; }
 
     .tag {
@@ -172,8 +187,20 @@
       border: 1px solid #a7f3d0;
       font-size: 12px;
       font-weight: 700;
-      padding: 8px 12px;
+      padding: 7px 12px;
       border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .btn-delete {
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #b91c1c;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 12px;
+      border-radius: 10px;
+      cursor: pointer;
       white-space: nowrap;
     }
 
@@ -205,6 +232,7 @@
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .field { margin-bottom: 10px; }
     label { display: block; font-size: 11.5px; font-weight: 700; color: #475569; margin-bottom: 4px; }
+    .mini-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
     .btn-blue {
       border: none;
@@ -252,6 +280,23 @@
       cursor: pointer;
     }
 
+    .feedback-bar {
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+
+    .feedback-bar.err {
+      background: #fee2e2;
+      color: #991b1b;
+      border-color: #fecaca;
+    }
+
     .hidden { display: none !important; }
 
     @media (max-width: 720px) {
@@ -289,7 +334,7 @@
         </div>
         <div class="toolbar">
           <select id="filterStatus" onchange="loadOrders()">
-            <option value="ALL">Semua Status</option>
+            <option value="ALL">Filter: Semua Status</option>
             <option value="Cek Harga">Cek Harga</option>
             <option value="Menunggu Bayar">Menunggu Bayar</option>
             <option value="Verifikasi">Verifikasi Bukti Bayar</option>
@@ -317,6 +362,7 @@
         </div>
       </div>
 
+      <div id="feedbackBox" class="feedback-bar hidden"></div>
       <div id="ordersList"></div>
     </main>
   </div>
@@ -329,6 +375,7 @@
     const ADMIN_PIN = '280901'; // Ganti PIN kamu
 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let ordersCache = [];
 
     if (sessionStorage.getItem('te_admin_ok') === '1') {
       showDashboard();
@@ -347,8 +394,28 @@
       loadOrders();
     }
 
+    function showFeedback(msg, isErr = false) {
+      const box = document.getElementById('feedbackBox');
+      box.textContent = msg;
+      box.className = isErr ? 'feedback-bar err' : 'feedback-bar';
+      box.classList.remove('hidden');
+    }
+
     function formatRupiah(num) {
       return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    // Ambil angka murni saja meski admin mengetik titik/spasi/Rp
+    function parseAngka(val) {
+      const bersih = String(val || '').replace(/[^\d]/g, '');
+      return Number(bersih || 0);
+    }
+
+    function updatePreviewUntung(id) {
+      const pokok = parseAngka(document.getElementById(`pokok-${id}`).value);
+      const jual = parseAngka(document.getElementById(`jual-${id}`).value);
+      const el = document.getElementById(`untung-${id}`);
+      if (el) el.textContent = `Untung: ${formatRupiah(jual - pokok)}`;
     }
 
     async function loadOrders() {
@@ -357,9 +424,13 @@
       if (filter !== 'ALL') q = q.eq('status', filter);
 
       const { data, error } = await q;
-      if (error) return;
+      if (error) {
+        showFeedback('Gagal memuat pesanan: ' + error.message, true);
+        return;
+      }
 
-      const selesai = data.filter(o => o.status === 'Selesai');
+      ordersCache = data || [];
+      const selesai = ordersCache.filter(o => o.status === 'Selesai');
       const omzet = selesai.reduce((s, o) => s + Number(o.harga_jual || 0), 0);
       const modal = selesai.reduce((s, o) => s + Number(o.harga_pokok || 0), 0);
 
@@ -368,18 +439,23 @@
       document.getElementById('statUntung').textContent = formatRupiah(omzet - modal);
 
       const listEl = document.getElementById('ordersList');
-      if (!data.length) {
+      if (!ordersCache.length) {
         listEl.innerHTML = '<div class="order-card" style="text-align:center;color:#64748b;font-size:13px">Belum ada pesanan pada filter ini.</div>';
         return;
       }
 
-      listEl.innerHTML = data.map(renderCard).join('');
+      listEl.innerHTML = ordersCache.map(renderCard).join('');
     }
 
     function renderCard(o) {
       const untung = Number(o.harga_jual || 0) - Number(o.harga_pokok || 0);
       const hpClean = o.no_hp.replace(/^0/, '62').replace(/\D/g, '');
       const waMsg = encodeURIComponent(`Halo ${o.nama_pemesan}, pesanan tiket ${o.moda} (${o.rute}) kode *${o.kode_order}* sudah diperbarui. Silakan cek tagihan/tiket di website kami.`);
+
+      const statuses = ['Cek Harga', 'Menunggu Bayar', 'Verifikasi', 'Selesai', 'Batal'];
+      const statusOptions = statuses.map(st =>
+        `<option value="${st}" ${o.status === st ? 'selected' : ''}>Status: ${st}</option>`
+      ).join('');
 
       return `
         <div class="order-card">
@@ -398,7 +474,14 @@
                 Pemesan: <b>${o.nama_pemesan}</b> (${o.no_hp})
               </div>
             </div>
-            <a href="https://wa.me/${hpClean}?text=${waMsg}" target="_blank" class="btn-wa">Chat WA</a>
+
+            <div class="head-actions">
+              <select class="status-select" onchange="ubahStatusLangsung('${o.id}', this.value)">
+                ${statusOptions}
+              </select>
+              <a href="https://wa.me/${hpClean}?text=${waMsg}" target="_blank" class="btn-wa">Chat WA</a>
+              <button type="button" class="btn-delete" onclick="hapusPesanan('${o.id}')">Hapus</button>
+            </div>
           </div>
 
           <div class="pax-box">${o.data_penumpang}</div>
@@ -408,21 +491,23 @@
               <div class="panel-title">1. Atur Harga Pokok, Jual & Batas Bayar</div>
               <div class="row-2">
                 <div class="field">
-                  <label>Harga Pokok (Modal)</label>
-                  <input type="number" id="pokok-${o.id}" value="${o.harga_pokok || ''}" placeholder="750000" />
+                  <label>Harga Pokok (Angka Saja)</label>
+                  <input type="text" inputmode="numeric" id="pokok-${o.id}" value="${o.harga_pokok || ''}" placeholder="750000" oninput="updatePreviewUntung('${o.id}')" />
+                  <div class="mini-hint">Contoh: 750000</div>
                 </div>
                 <div class="field">
-                  <label>Harga Jual (Tagihan)</label>
-                  <input type="number" id="jual-${o.id}" value="${o.harga_jual || ''}" placeholder="775000" />
+                  <label>Harga Jual (Angka Saja)</label>
+                  <input type="text" inputmode="numeric" id="jual-${o.id}" value="${o.harga_jual || ''}" placeholder="780000" oninput="updatePreviewUntung('${o.id}')" />
+                  <div class="mini-hint">Contoh: 780000</div>
                 </div>
               </div>
               <div class="field">
                 <label>Batas Waktu Bayar</label>
-                <input type="text" id="limit-${o.id}" value="${o.batas_bayar || ''}" placeholder="Hari ini pukul 21:00 WIB" />
+                <input type="text" id="limit-${o.id}" value="${o.batas_bayar || ''}" placeholder="Hari ini pukul 21:30 WIB" />
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px">
-                <span style="font-size:12px;font-weight:800;color:#047857">Untung: ${formatRupiah(untung)}</span>
-                <button type="button" class="btn-blue" onclick="kirimTagihan('${o.id}')">Simpan & Kirim Tagihan</button>
+                <span id="untung-${o.id}" style="font-size:12px;font-weight:800;color:#047857">Untung: ${formatRupiah(untung)}</span>
+                <button type="button" class="btn-blue" id="btn-tagihan-${o.id}" onclick="kirimTagihan('${o.id}')">Simpan & Kirim Tagihan</button>
               </div>
             </div>
 
@@ -452,18 +537,61 @@
       `;
     }
 
+    async function ubahStatusLangsung(id, statusBaru) {
+      const { error } = await db
+        .from('ticket_orders')
+        .update({ status: statusBaru })
+        .eq('id', id)
+        .select();
+
+      if (error) {
+        showFeedback('Gagal ubah status: ' + error.message, true);
+        return;
+      }
+
+      showFeedback(`Status pesanan diperbarui menjadi "${statusBaru}".`);
+      loadOrders();
+    }
+
     async function kirimTagihan(id) {
-      const harga_pokok = Number(document.getElementById(`pokok-${id}`).value || 0);
-      const harga_jual = Number(document.getElementById(`jual-${id}`).value || 0);
+      const btn = document.getElementById(`btn-tagihan-${id}`);
+      const harga_pokok = parseAngka(document.getElementById(`pokok-${id}`).value);
+      const harga_jual = parseAngka(document.getElementById(`jual-${id}`).value);
       const batas_bayar = document.getElementById(`limit-${id}`).value.trim();
 
-      await db.from('ticket_orders').update({
-        harga_pokok,
-        harga_jual,
-        batas_bayar,
-        status: 'Menunggu Bayar'
-      }).eq('id', id);
+      if (harga_jual <= 0) {
+        showFeedback('Isi Harga Jual (angka saja, misal 780000) sebelum kirim tagihan.', true);
+        return;
+      }
 
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      const { data, error } = await db
+        .from('ticket_orders')
+        .update({
+          harga_pokok,
+          harga_jual,
+          batas_bayar,
+          status: 'Menunggu Bayar'
+        })
+        .eq('id', id)
+        .select();
+
+      btn.disabled = false;
+      btn.textContent = 'Simpan & Kirim Tagihan';
+
+      if (error) {
+        showFeedback('Gagal kirim tagihan: ' + error.message, true);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        showFeedback('Tagihan tidak tersimpan (cek izin UPDATE di Supabase).', true);
+        return;
+      }
+
+      showFeedback(`Tagihan ${formatRupiah(harga_jual)} terkirim & status diubah ke "Menunggu Bayar".`);
       loadOrders();
     }
 
@@ -482,26 +610,75 @@
         const fileName = `etiket_${id}_${Date.now()}.${ext}`;
 
         const { error: upErr } = await db.storage.from('tiket-files').upload(fileName, file);
-        if (!upErr) {
-          const { data: pub } = db.storage.from('tiket-files').getPublicUrl(fileName);
-          etiket_url = pub.publicUrl;
+        if (upErr) {
+          showFeedback('Gagal upload e-tiket: ' + upErr.message, true);
+          btn.disabled = false;
+          btn.textContent = 'Terbitkan Tiket';
+          return;
         }
+
+        const { data: pub } = db.storage.from('tiket-files').getPublicUrl(fileName);
+        etiket_url = pub.publicUrl;
       }
 
-      await db.from('ticket_orders').update({
-        kode_booking,
-        etiket_url,
-        status: 'Selesai'
-      }).eq('id', id);
+      const { error } = await db
+        .from('ticket_orders')
+        .update({
+          kode_booking,
+          etiket_url,
+          status: 'Selesai'
+        })
+        .eq('id', id)
+        .select();
 
+      btn.disabled = false;
+      btn.textContent = 'Terbitkan Tiket';
+
+      if (error) {
+        showFeedback('Gagal terbitkan tiket: ' + error.message, true);
+        return;
+      }
+
+      showFeedback('Tiket berhasil diterbitkan & status diubah ke "Selesai".');
       loadOrders();
     }
 
     async function batalkanOrder(id) {
-      await db.from('ticket_orders').update({ status: 'Batal' }).eq('id', id);
+      const { error } = await db
+        .from('ticket_orders')
+        .update({ status: 'Batal' })
+        .eq('id', id)
+        .select();
+
+      if (error) {
+        showFeedback('Gagal membatalkan pesanan: ' + error.message, true);
+        return;
+      }
+
+      showFeedback('Pesanan ditandai sebagai "Batal".');
+      loadOrders();
+    }
+
+    async function hapusPesanan(id) {
+      const { data, error } = await db
+        .from('ticket_orders')
+        .delete()
+        .eq('id', id)
+        .select();
+
+      if (error) {
+        showFeedback('Gagal hapus pesanan: ' + error.message + ' (Pastikan SQL grant delete sudah dijalankan di Supabase)', true);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        showFeedback('Pesanan tidak terhapus (cek policy DELETE di Supabase).', true);
+        return;
+      }
+
+      showFeedback('Pesanan berhasil dihapus.');
       loadOrders();
     }
   </script>
 </body>
-          </html>
-          
+</html>
