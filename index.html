@@ -647,7 +647,7 @@
     </div>
   </section>
 
-  <!-- SECTION: CARA PESAN -->
+    <!-- SECTION: CARA PESAN -->
   <section class="section" id="cara-pesan">
     <div class="section-head">
       <h2>Alur Pemesanan Praktis</h2>
@@ -667,4 +667,354 @@
       <div class="info-card">
         <span class="step-num">LANGKAH 3</span>
         <h3>Terima E-Tiket Resmi</h3>
-        <p>Setelah pembayaran terverifikasi, kode booking dan file e-tiket langsung tersedia untuk d
+        <p>Setelah pembayaran terverifikasi, kode booking dan file e-tiket langsung tersedia untuk diunduh.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <strong>TiketExpress</strong> — Layanan Pemesanan Tiket Pesawat, Kereta Api, Bus & Kapal Laut.<br />
+    Pastikan data identitas penumpang sesuai KTP/Paspor sebelum melakukan pembayaran.
+  </footer>
+
+  <script>
+    // === KONFIGURASI SUPABASE & REKENING / E-WALLET ===
+    const SUPABASE_URL = 'https://ezzxndbjbbvlptetrcxo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6enhuZGJqYmJ2bHB0ZXRyY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwODYzMDksImV4cCI6MjExMDY2MjMwOX0.iLJk-rer6VwK_sckmbii8NGS6lmDdlgHHfM0d1X6awU';
+
+    const PAYMENT_METHODS = [
+      { bank: 'BRI', nomor: '2250 0100 5337 534', nama: 'ARIEF' },
+      { bank: 'SeaBank', nomor: '901332160185', nama: 'ARIEF' },
+      { bank: 'DANA', nomor: '082260714086', nama: 'ARIEF' }
+    ];
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let lastCreatedCode = '';
+
+    // === DATABASE LOKASI OTOMATIS PER MODA ===
+    const MASTER_RUTE = {
+      Pesawat: [
+        { nama: 'Pekanbaru - Sultan Syarif Kasim II', kode: 'PKU' },
+        { nama: 'Jakarta - Soekarno-Hatta', kode: 'CGK' },
+        { nama: 'Jakarta - Halim Perdanakusuma', kode: 'HLP' },
+        { nama: 'Medan - Kualanamu', kode: 'KNO' },
+        { nama: 'Batam - Hang Nadim', kode: 'BTH' },
+        { nama: 'Padang - Minangkabau', kode: 'PDG' },
+        { nama: 'Palembang - Sultan Mahmud Badaruddin II', kode: 'PLM' },
+        { nama: 'Jambi - Sultan Thaha', kode: 'DJB' },
+        { nama: 'Surabaya - Juanda', kode: 'SUB' },
+        { nama: 'Yogyakarta - YIA Kulon Progo', kode: 'YIA' },
+        { nama: 'Semarang - Ahmad Yani', kode: 'SRG' },
+        { nama: 'Denpasar Bali - Ngurah Rai', kode: 'DPS' },
+        { nama: 'Makassar - Sultan Hasanuddin', kode: 'UPG' },
+        { nama: 'Balikpapan - Sepinggan', kode: 'BPN' },
+        { nama: 'Banjarmasin - Syamsudin Noor', kode: 'BDJ' },
+        { nama: 'Pontianak - Supadio', kode: 'PNK' },
+        { nama: 'Kuala Lumpur - KLIA', kode: 'KUL' },
+        { nama: 'Singapura - Changi', kode: 'SIN' }
+      ],
+      Kereta: [
+        { nama: 'Jakarta - Stasiun Gambir', kode: 'GMR' },
+        { nama: 'Jakarta - Stasiun Pasar Senen', kode: 'PSE' },
+        { nama: 'Bandung - Stasiun Bandung', kode: 'BD' },
+        { nama: 'Bandung - Stasiun Kiaracondong', kode: 'KAC' },
+        { nama: 'Cirebon - Stasiun Cirebon', kode: 'CN' },
+        { nama: 'Purwokerto - Stasiun Purwokerto', kode: 'PWT' },
+        { nama: 'Semarang - Stasiun Tawang', kode: 'SMT' },
+        { nama: 'Semarang - Stasiun Poncol', kode: 'SMC' },
+        { nama: 'Yogyakarta - Stasiun Tugu', kode: 'YK' },
+        { nama: 'Yogyakarta - Stasiun Lempuyangan', kode: 'LPN' },
+        { nama: 'Solo - Stasiun Solo Balapan', kode: 'SLO' },
+        { nama: 'Surabaya - Stasiun Gubeng', kode: 'SGU' },
+        { nama: 'Surabaya - Stasiun Pasar Turi', kode: 'SBI' },
+        { nama: 'Malang - Stasiun Malang', kode: 'ML' },
+        { nama: 'Medan - Stasiun Medan', kode: 'MDN' },
+        { nama: 'Palembang - Stasiun Kertapati', kode: 'KPT' },
+        { nama: 'Lampung - Stasiun Tanjungkarang', kode: 'TNK' }
+      ],
+      Bus: [
+        { nama: 'Pekanbaru (Terminal BRPS / Loket)', kode: 'PKU' },
+        { nama: 'Bangkinang (Kampar)', kode: 'BKN' },
+        { nama: 'Dumai', kode: 'DUM' },
+        { nama: 'Duri (Bengkalis)', kode: 'DUR' },
+        { nama: 'Rengat / Tembilahan', kode: 'RGT' },
+        { nama: 'Padang', kode: 'PDG' },
+        { nama: 'Bukittinggi / Payakumbuh', kode: 'BKT' },
+        { nama: 'Medan (Amplas / Gagak Hitam)', kode: 'MDN' },
+        { nama: 'Jambi', kode: 'JMB' },
+        { nama: 'Palembang', kode: 'PLG' },
+        { nama: 'Bandar Lampung', kode: 'LPG' },
+        { nama: 'Jakarta (Pulo Gebang / Kampung Rambutan / Kalideres)', kode: 'JKT' },
+        { nama: 'Bekasi / Tangerang / Bogor', kode: 'JBD' },
+        { nama: 'Bandung (Leuwi Panjang / Cicaheum)', kode: 'BDG' },
+        { nama: 'Semarang', kode: 'SMG' },
+        { nama: 'Yogyakarta', kode: 'YOG' },
+        { nama: 'Surabaya (Bungurasih)', kode: 'SBY' }
+      ],
+      Kapal: [
+        { nama: 'Pelabuhan Dumai (Riau)', kode: 'DUM' },
+        { nama: 'Pelabuhan Bengkalis / Selatpanjang', kode: 'BKS' },
+        { nama: 'Pelabuhan Batam - Sekupang / Harbour Bay', kode: 'BTM' },
+        { nama: 'Pelabuhan Tanjung Pinang (Sri Bintan Pura)', kode: 'TPI' },
+        { nama: 'Pelabuhan Tanjung Balai Karimun', kode: 'TBK' },
+        { nama: 'Pelabuhan Belawan (Medan)', kode: 'BLW' },
+        { nama: 'Pelabuhan Tanjung Priok (Jakarta)', kode: 'TPK' },
+        { nama: 'Pelabuhan Penyeberangan Merak (Banten)', kode: 'MRK' },
+        { nama: 'Pelabuhan Penyeberangan Bakauheni (Lampung)', kode: 'BKH' },
+        { nama: 'Pelabuhan Tanjung Perak (Surabaya)', kode: 'TPR' },
+        { nama: 'Pelabuhan Tanjung Emas (Semarang)', kode: 'TEM' },
+        { nama: 'Pelabuhan Ketapang (Banyuwangi)', kode: 'KTP' },
+        { nama: 'Pelabuhan Gilimanuk (Bali)', kode: 'GLM' },
+        { nama: 'Pelabuhan Soekarno-Hatta (Makassar)', kode: 'MKS' },
+        { nama: 'Pelabuhan Semayang (Balikpapan)', kode: 'BPN' }
+      ]
+    };
+
+    const MODA_META = {
+      Pesawat: {
+        asal: 'Bandara Asal (Dari)',
+        tujuan: 'Bandara Tujuan (Ke)',
+        placeholder: 'Pilih atau ketik bandara...',
+        opLabel: 'Preferensi Jam / Maskapai',
+        opPlaceholder: 'Pagi / Garuda / Lion / Citilink'
+      },
+      Kereta: {
+        asal: 'Stasiun Keberangkatan (Dari)',
+        tujuan: 'Stasiun Tujuan (Ke)',
+        placeholder: 'Pilih atau ketik stasiun...',
+        opLabel: 'Preferensi Jam / Kelas KA',
+        opPlaceholder: 'Pagi / Eksekutif / Ekonomi'
+      },
+      Bus: {
+        asal: 'Kota / Terminal Asal (Dari)',
+        tujuan: 'Kota / Terminal Tujuan (Ke)',
+        placeholder: 'Pilih atau ketik kota/terminal...',
+        opLabel: 'Preferensi Jam / PO Bus',
+        opPlaceholder: 'Malam / SAN / ALS / NPM'
+      },
+      Kapal: {
+        asal: 'Pelabuhan Asal (Dari)',
+        tujuan: 'Pelabuhan Tujuan (Ke)',
+        placeholder: 'Pilih atau ketik pelabuhan...',
+        opLabel: 'Preferensi Jam / Kapal',
+        opPlaceholder: 'Pagi / PELNI / Ferry / Dumai Express'
+      }
+    };
+
+    document.querySelectorAll('.moda-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.moda-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const moda = btn.dataset.moda;
+        document.getElementById('modaInput').value = moda;
+
+        const meta = MODA_META[moda];
+        document.getElementById('labelAsal').textContent = meta.asal;
+        document.getElementById('labelTujuan').textContent = meta.tujuan;
+        document.getElementById('asalInput').placeholder = meta.placeholder;
+        document.getElementById('tujuanInput').placeholder = meta.placeholder;
+        document.getElementById('labelOperator').textContent = meta.opLabel;
+        document.getElementById('jamPreferensi').placeholder = meta.opPlaceholder;
+
+        document.getElementById('asalInput').value = '';
+        document.getElementById('tujuanInput').value = '';
+      });
+    });
+
+    function setupAutocomplete(inputId, dropdownId) {
+      const input = document.getElementById(inputId);
+      const dropdown = document.getElementById(dropdownId);
+
+      function renderOptions(keyword = '') {
+        const moda = document.getElementById('modaInput').value;
+        const list = MASTER_RUTE[moda] || [];
+        const q = keyword.toLowerCase().trim();
+        const filtered = list.filter(item =>
+          item.nama.toLowerCase().includes(q) || item.kode.toLowerCase().includes(q)
+        );
+        if (filtered.length === 0) {
+          dropdown.classList.add('hidden');
+          return;
+        }
+
+        dropdown.innerHTML = filtered.map(item => `
+          <div class="ac-item" data-val="${item.nama} (${item.kode})">
+            <span>${item.nama}</span>
+            <span class="ac-code">${item.kode}</span>
+          </div>
+        `).join('');
+
+        dropdown.querySelectorAll('.ac-item').forEach(el => {
+          el.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            input.value = el.dataset.val;
+            dropdown.classList.add('hidden');
+          });
+        });
+
+        dropdown.classList.remove('hidden');
+      }
+
+      input.addEventListener('focus', () => renderOptions(input.value));
+      input.addEventListener('input', () => renderOptions(input.value));
+      input.addEventListener('blur', () => {
+        setTimeout(() => dropdown.classList.add('hidden'), 150);
+      });
+    }
+
+    setupAutocomplete('asalInput', 'asalDropdown');
+    setupAutocomplete('tujuanInput', 'tujuanDropdown');
+
+    function swapRute() {
+      const asal = document.getElementById('asalInput');
+      const tujuan = document.getElementById('tujuanInput');
+      const temp = asal.value;
+      asal.value = tujuan.value;
+      tujuan.value = temp;
+    }
+
+    function switchTab(tab) {
+      const isOrder = tab === 'order';
+      document.getElementById('sectionOrder').classList.toggle('hidden', !isOrder);
+      document.getElementById('sectionStatus').classList.toggle('hidden', isOrder);
+      document.getElementById('tabOrderBtn').classList.toggle('active', isOrder);
+      document.getElementById('tabStatusBtn').classList.toggle('active', !isOrder);
+    }
+
+    function jumpToStatus() {
+      switchTab('status');
+      document.getElementById('bookingBox').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function generateOrderCode() {
+      const now = new Date();
+      const yymmdd = now.toISOString().slice(2, 10).replace(/-/g, '');
+      const rand = Math.floor(100 + Math.random() * 900);
+      return `TRX-${yymmdd}-${rand}`;
+    }
+
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitOrderBtn');
+      btn.disabled = true;
+      btn.textContent = 'Mengirim Permintaan...';
+
+      const asal = document.getElementById('asalInput').value.trim();
+      const tujuan = document.getElementById('tujuanInput').value.trim();
+      const ruteGabungan = `${asal} → ${tujuan}`;
+
+      const kodeOrder = generateOrderCode();
+      const payload = {
+        kode_order: kodeOrder,
+        moda: document.getElementById('modaInput').value,
+        rute: ruteGabungan,
+        tanggal_berangkat: document.getElementById('tanggal').value,
+        jam_preferensi: document.getElementById('jamPreferensi').value.trim(),
+        jumlah_penumpang: parseInt(document.getElementById('jumlahPenumpang').value, 10),
+        nama_pemesan: document.getElementById('namaPemesan').value.trim(),
+        no_hp: document.getElementById('noHp').value.trim(),
+        data_penumpang: document.getElementById('dataPenumpang').value.trim(),
+        status: 'Cek Harga'
+      };
+
+      const { error } = await db.from('ticket_orders').insert([payload]);
+      btn.disabled = false;
+      btn.textContent = 'Ajukan Cek Jadwal & Harga →';
+
+      if (error) {
+        alert('Gagal membuat pesanan: ' + error.message);
+        return;
+      }
+
+      lastCreatedCode = kodeOrder;
+      document.getElementById('createdKodeText').textContent = kodeOrder;
+      document.getElementById('orderCreatedBox').classList.remove('hidden');
+      document.getElementById('orderForm').reset();
+    });
+
+    function goToCreatedOrder() {
+      switchTab('status');
+      document.getElementById('searchQuery').value = lastCreatedCode;
+      cariPesanan();
+    }
+
+    function formatRupiah(num) {
+      return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    function salinRek(nomor, btn) {
+      navigator.clipboard.writeText(nomor.replace(/\s+/g, ''));
+      const asli = btn.textContent;
+      btn.textContent = 'Tersalin ✓';
+      setTimeout(() => { btn.textContent = asli; }, 1500);
+    }
+
+    async function cariPesanan() {
+      const q = document.getElementById('searchQuery').value.trim();
+      const container = document.getElementById('statusResultContainer');
+      if (!q) return;
+
+      container.innerHTML = '<div class="status-card"><div class="hint">Memuat data pesanan...</div></div>';
+
+      const { data, error } = await db
+        .from('ticket_orders')
+                </div>
+        `;
+      }
+
+      return `
+        <div class="status-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span class="mono" style="font-size:13px;color:#64748b">${item.kode_order}</span>
+            <span class="badge ${badgeClass}">${item.status}</span>
+          </div>
+          <div style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase">${item.moda}</div>
+          <div style="font-size:17px;font-weight:800;margin-top:2px">${item.rute}</div>
+          <div class="hint">Tanggal: ${item.tanggal_berangkat} • ${item.jumlah_penumpang} Penumpang</div>
+          <div style="margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:12.5px;white-space:pre-line">${item.data_penumpang}</div>
+          ${panel}
+        </div>
+      `;
+    }
+
+    async function uploadBuktiBayar(orderId) {
+      const fileInput = document.getElementById(`file-${orderId}`);
+      const btn = document.getElementById(`btn-upload-${orderId}`);
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Pilih foto bukti pembayaran terlebih dahulu.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Mengunggah...';
+
+      const file = fileInput.files[0];
+      const ext = file.name.split('.').pop();
+      const fileName = `bukti_${orderId}_${Date.now()}.${ext}`;
+
+      const { error: upErr } = await db.storage.from('tiket-files').upload(fileName, file);
+      if (upErr) {
+        alert('Gagal upload: ' + upErr.message);
+        btn.disabled = false;
+        btn.textContent = 'Kirim Bukti Pembayaran';
+        return;
+      }
+
+      const { data: pub } = db.storage.from('tiket-files').getPublicUrl(fileName);
+      await db.from('ticket_orders').update({
+        bukti_bayar_url: pub.publicUrl,
+        status: 'Verifikasi'
+      }).eq('id', orderId);
+
+      cariPesanan();
+    }
+  </script>
+</body>
+</html>
+    
+
+         
+  
+
+  
