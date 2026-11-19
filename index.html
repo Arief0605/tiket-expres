@@ -28,6 +28,14 @@
       color: var(--text);
       line-height: 1.5;
       overflow-x: hidden;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-main {
+      flex: 1 0 auto;
+      width: 100%;
     }
 
     /* NAVBAR */
@@ -41,12 +49,13 @@
     }
 
     .nav-inner {
-      max-width: 1040px;
+      max-width: 1120px;
       margin: 0 auto;
       padding: 14px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
     }
 
     .logo {
@@ -55,6 +64,7 @@
       gap: 10px;
       text-decoration: none;
       color: var(--text);
+      flex-shrink: 0;
     }
 
     .logo-badge {
@@ -76,12 +86,14 @@
     .nav-actions { display: flex; align-items: center; gap: 8px; }
     .nav-link {
       text-decoration: none;
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 600;
       color: var(--muted);
       padding: 8px 12px;
       border-radius: 9px;
+      white-space: nowrap;
     }
+    .nav-link:hover { color: var(--text); background: #f1f5f9; }
     .nav-cta {
       border: none;
       background: var(--blue-soft);
@@ -91,17 +103,18 @@
       padding: 9px 14px;
       border-radius: 10px;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     /* HERO */
     .hero {
       background: linear-gradient(135deg, #0f172a 0%, #0369a1 55%, #0284c7 100%);
       color: #ffffff;
-      padding: 44px 20px 104px;
+      padding: 48px 20px 108px;
       text-align: center;
     }
 
-    .hero-inner { max-width: 760px; margin: 0 auto; }
+    .hero-inner { max-width: 780px; margin: 0 auto; }
     .hero-pill {
       display: inline-flex;
       align-items: center;
@@ -116,7 +129,7 @@
     }
 
     .hero h1 {
-      font-size: clamp(25px, 5vw, 38px);
+      font-size: clamp(24px, 4.2vw, 40px);
       font-weight: 800;
       line-height: 1.2;
       letter-spacing: -0.025em;
@@ -124,15 +137,15 @@
     }
 
     .hero p {
-      font-size: clamp(13.5px, 2.5vw, 15.5px);
+      font-size: clamp(13.5px, 1.8vw, 16px);
       color: #e0f2fe;
-      max-width: 560px;
+      max-width: 600px;
       margin: 0 auto;
     }
 
     /* BOOKING WIDGET */
     .booking-wrapper {
-      max-width: 840px;
+      max-width: 880px;
       margin: -72px auto 0;
       padding: 0 16px;
       position: relative;
@@ -203,7 +216,7 @@
     /* ROUTE PICKER */
     .route-box {
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
       gap: 10px;
       align-items: end;
       margin-bottom: 15px;
@@ -223,6 +236,7 @@
       align-items: center;
       justify-content: center;
       transition: 0.15s;
+      flex-shrink: 0;
     }
 
     .swap-btn:hover {
@@ -230,7 +244,7 @@
       border-color: var(--blue);
     }
 
-    .ac-wrap { position: relative; }
+    .ac-wrap { position: relative; min-width: 0; }
 
     .ac-list {
       position: absolute;
@@ -273,17 +287,17 @@
     /* FORM GRID */
     .grid-3 {
       display: grid;
-      grid-template-columns: 1fr 110px 1fr;
+      grid-template-columns: minmax(0, 1fr) 115px minmax(0, 1fr);
       gap: 12px;
     }
 
     .grid-2 {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
     }
 
-    .field { margin-bottom: 15px; }
+    .field { margin-bottom: 15px; min-width: 0; }
 
     label {
       display: block;
@@ -295,6 +309,7 @@
 
     input, textarea {
       width: 100%;
+      max-width: 100%;
       border: 1.5px solid #cbd5e1;
       background: #ffffff;
       color: var(--text);
@@ -357,9 +372,10 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; font-size: 15px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; font-size: 15px; word-break: break-word; }
 
     /* STATUS */
     .search-bar { display: flex; gap: 10px; }
@@ -383,7 +399,7 @@
       background: #ffffff;
     }
 
-    .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #e2e8f0; }
+    .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #e2e8f0; white-space: nowrap; }
     .badge.cek { background: #fef3c7; color: #92400e; }
     .badge.bayar { background: #dbeafe; color: #1e40af; }
     .badge.verif { background: #ede9fe; color: #5b21b6; }
@@ -398,6 +414,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
       margin: 14px 0;
     }
 
@@ -423,22 +441,24 @@
       border-radius: 9px;
       cursor: pointer;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     /* LANDING SECTIONS */
-    .section { max-width: 1040px; margin: 56px auto 0; padding: 0 20px; }
-    .section-head { text-align: center; max-width: 580px; margin: 0 auto 28px; }
-    .section-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+    .section { max-width: 1120px; margin: 56px auto 0; padding: 0 20px; }
+    .section-head { text-align: center; max-width: 600px; margin: 0 auto 28px; }
+    .section-head h2 { font-size: clamp(20px, 2.6vw, 26px); font-weight: 800; letter-spacing: -0.02em; }
     .section-head p { font-size: 14px; color: var(--muted); margin-top: 6px; }
 
-    .cards-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .cards-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .cards-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 
     .info-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 18px;
       padding: 20px;
+      min-width: 0;
     }
 
     .info-icon {
@@ -468,30 +488,80 @@
       margin-bottom: 10px;
     }
 
+    /* FOOTER SOLID & RESPONSIF */
     .footer {
       margin-top: 64px;
-      background: #ffffff;
-      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      width: 100%;
+      background: #0f172a;
+      color: #cbd5e1;
+      border-top: 3px solid var(--blue);
       padding: 28px 20px;
-      text-align: center;
-      font-size: 12.5px;
-      color: var(--muted);
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .footer-brand { font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
+    .footer-brand span { color: #38bdf8; }
+    .footer-desc { font-size: 12.5px; color: #94a3b8; max-width: 580px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .footer-links a, .footer-links button {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #f8fafc;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+    .footer-links a:hover, .footer-links button:hover {
+      background: rgba(255, 255, 255, 0.16);
     }
 
     .hidden { display: none !important; }
 
+    /* TABLET & SMALL LAPTOP */
+    @media (max-width: 900px) {
+      .cards-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    /* HP LANDSCAPE / TABLET KECIL */
     @media (max-width: 768px) {
-      .cards-4, .cards-3 { grid-template-columns: 1fr 1fr; }
-      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .cards-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
       .nav-link { display: none; }
     }
 
+    /* HP PORTRAIT */
     @media (max-width: 560px) {
-      .route-box { grid-template-columns: 1fr; }
-      .swap-btn { width: 100%; height: 36px; }
-      .cards-4, .cards-3, .grid-2, .grid-3 { grid-template-columns: 1fr; }
-      .hero { padding: 34px 16px 90px; }
-      .widget-body { padding: 18px 16px; }
+      .route-box { grid-template-columns: minmax(0, 1fr); }
+      .swap-btn { width: 100%; height: 38px; }
+      .moda-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .cards-4, .cards-3, .grid-2, .grid-3 { grid-template-columns: minmax(0, 1fr); }
+      .search-bar { flex-direction: column; }
+      .btn-dark { padding: 12px 16px; width: 100%; }
+      .hero { padding: 34px 16px 92px; }
+      .booking-wrapper { padding: 0 12px; }
+      .widget-body { padding: 18px 14px; }
+      .section { margin-top: 40px; padding: 0 14px; }
+      .footer { margin-top: 44px; padding: 22px 16px; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* LAYAR SANGAT LEBAR (PC / MONITOR BESAR) */
+    @media (min-width: 1440px) {
+      .nav-inner, .section, .footer-inner { max-width: 1240px; }
+      .booking-wrapper { max-width: 920px; }
     }
   </style>
 </head>
@@ -507,181 +577,191 @@
       <div class="nav-actions">
         <a href="#layanan" class="nav-link">Layanan</a>
         <a href="#cara-pesan" class="nav-link">Cara Pesan</a>
-        <button class="nav-cta" onclick="jumpToStatus()">Cek & Bayar Tiket</button>
+        <button type="button" class="nav-cta" onclick="jumpToStatus()">Cek &amp; Bayar Tiket</button>
       </div>
     </div>
   </nav>
 
-  <!-- HERO -->
-  <header class="hero">
-    <div class="hero-inner">
-      <div class="hero-pill">✈️ Pesawat • 🚆 Kereta Api • 🚌 Bus • 🚢 Kapal Laut</div>
-      <h1>Pesan Tiket Perjalanan Resmi Dalam Satu Tempat</h1>
-      <p>Pilih kota asal & tujuan otomatis sesuai moda transportasi, bayar lewat transfer bank atau DANA, dan terima e-tiket resmi.</p>
-    </div>
-  </header>
-
-  <!-- BOOKING WIDGET -->
-  <div class="booking-wrapper" id="bookingBox">
-    <div class="widget-card">
-      <div class="widget-tabs">
-        <button id="tabOrderBtn" class="w-tab active" onclick="switchTab('order')">1. Buat Pesanan Tiket</button>
-        <button id="tabStatusBtn" class="w-tab" onclick="switchTab('status')">2. Cek Tagihan & Bayar</button>
+  <main class="page-main">
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="hero-pill">✈️ Pesawat • 🚆 Kereta Api • 🚌 Bus • 🚢 Kapal Laut</div>
+        <h1>Pesan Tiket Perjalanan Resmi Dalam Satu Tempat</h1>
+        <p>Pilih kota asal &amp; tujuan otomatis sesuai moda transportasi, bayar lewat transfer bank atau DANA, dan terima e-tiket resmi.</p>
       </div>
+    </header>
 
-      <!-- TAB 1: FORM ORDER -->
-      <div id="sectionOrder" class="widget-body">
-        <div class="moda-bar">
-          <div class="moda-item active" data-moda="Pesawat"><span class="emoji">✈️</span><span class="label">Pesawat</span></div>
-          <div class="moda-item" data-moda="Kereta"><span class="emoji">🚆</span><span class="label">Kereta</span></div>
-          <div class="moda-item" data-moda="Bus"><span class="emoji">🚌</span><span class="label">Bus</span></div>
-          <div class="moda-item" data-moda="Kapal"><span class="emoji">🚢</span><span class="label">Kapal</span></div>
+    <!-- BOOKING WIDGET -->
+    <div class="booking-wrapper" id="bookingBox">
+      <div class="widget-card">
+        <div class="widget-tabs">
+          <button type="button" id="tabOrderBtn" class="w-tab active" onclick="switchTab('order')">1. Buat Pesanan Tiket</button>
+          <button type="button" id="tabStatusBtn" class="w-tab" onclick="switchTab('status')">2. Cek Tagihan &amp; Bayar</button>
         </div>
 
-        <form id="orderForm" autocomplete="off">
-          <input type="hidden" id="modaInput" value="Pesawat" />
-
-          <!-- PILIHAN RUTE OTOMATIS ASAL & TUJUAN -->
-          <div class="route-box">
-            <div class="ac-wrap">
-              <label for="asalInput" id="labelAsal">Bandara Asal (Dari)</label>
-              <input type="text" id="asalInput" required placeholder="Pilih atau ketik bandara..." />
-              <div id="asalDropdown" class="ac-list hidden"></div>
-            </div>
-
-            <button type="button" class="swap-btn" onclick="swapRute()" title="Tukar Asal & Tujuan">⇄</button>
-
-            <div class="ac-wrap">
-              <label for="tujuanInput" id="labelTujuan">Bandara Tujuan (Ke)</label>
-              <input type="text" id="tujuanInput" required placeholder="Pilih atau ketik bandara..." />
-              <div id="tujuanDropdown" class="ac-list hidden"></div>
-            </div>
+        <!-- TAB 1: FORM ORDER -->
+        <div id="sectionOrder" class="widget-body">
+          <div class="moda-bar">
+            <div class="moda-item active" data-moda="Pesawat"><span class="emoji">✈️</span><span class="label">Pesawat</span></div>
+            <div class="moda-item" data-moda="Kereta"><span class="emoji">🚆</span><span class="label">Kereta</span></div>
+            <div class="moda-item" data-moda="Bus"><span class="emoji">🚌</span><span class="label">Bus</span></div>
+            <div class="moda-item" data-moda="Kapal"><span class="emoji">🚢</span><span class="label">Kapal</span></div>
           </div>
 
-          <div class="grid-3">
-            <div class="field">
-              <label for="tanggal">Tanggal Berangkat</label>
-              <input type="date" id="tanggal" required />
-            </div>
-            <div class="field">
-              <label for="jumlahPenumpang">Penumpang</label>
-              <input type="number" id="jumlahPenumpang" min="1" value="1" required />
-            </div>
-            <div class="field">
-              <label for="jamPreferensi" id="labelOperator">Preferensi Jam / Maskapai</label>
-              <input type="text" id="jamPreferensi" placeholder="Pagi / Garuda / Lion / Citilink" />
-            </div>
-          </div>
+          <form id="orderForm" autocomplete="off">
+            <input type="hidden" id="modaInput" value="Pesawat" />
 
-          <div class="grid-2">
-            <div class="field">
-              <label for="namaPemesan">Nama Lengkap Pemesan</label>
-              <input type="text" id="namaPemesan" required placeholder="Nama pemesan" />
+            <!-- PILIHAN RUTE OTOMATIS ASAL & TUJUAN -->
+            <div class="route-box">
+              <div class="ac-wrap">
+                <label for="asalInput" id="labelAsal">Bandara Asal (Dari)</label>
+                <input type="text" id="asalInput" required placeholder="Pilih atau ketik bandara..." />
+                <div id="asalDropdown" class="ac-list hidden"></div>
+              </div>
+
+              <button type="button" class="swap-btn" onclick="swapRute()" title="Tukar Asal &amp; Tujuan">⇄</button>
+
+              <div class="ac-wrap">
+                <label for="tujuanInput" id="labelTujuan">Bandara Tujuan (Ke)</label>
+                <input type="text" id="tujuanInput" required placeholder="Pilih atau ketik bandara..." />
+                <div id="tujuanDropdown" class="ac-list hidden"></div>
+              </div>
             </div>
-            <div class="field">
-              <label for="noHp">No. WhatsApp Aktif</label>
-              <input type="tel" id="noHp" required placeholder="0812xxxxxxxx" />
+
+            <div class="grid-3">
+              <div class="field">
+                <label for="tanggal">Tanggal Berangkat</label>
+                <input type="date" id="tanggal" required />
+              </div>
+              <div class="field">
+                <label for="jumlahPenumpang">Penumpang</label>
+                <input type="number" id="jumlahPenumpang" min="1" value="1" required />
+              </div>
+              <div class="field">
+                <label for="jamPreferensi" id="labelOperator">Preferensi Jam / Maskapai</label>
+                <input type="text" id="jamPreferensi" placeholder="Pagi / Garuda / Lion / Citilink" />
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label for="dataPenumpang">Daftar Penumpang (Sesuai KTP / Paspor)</label>
-            <textarea id="dataPenumpang" required placeholder="1. Budi Santoso - NIK 147101xxxxxxxxxx&#10;2. Siti Aminah - NIK 147101xxxxxxxxxx"></textarea>
-            <div class="hint">Pastikan penulisan nama dan nomor identitas benar sesuai KTP/Paspor.</div>
-          </div>
+            <div class="grid-2">
+              <div class="field">
+                <label for="namaPemesan">Nama Lengkap Pemesan</label>
+                <input type="text" id="namaPemesan" required placeholder="Nama pemesan" />
+              </div>
+              <div class="field">
+                <label for="noHp">No. WhatsApp Aktif</label>
+                <input type="tel" id="noHp" required placeholder="0812xxxxxxxx" />
+              </div>
+            </div>
 
-          <button type="submit" id="submitOrderBtn" class="btn-submit">Ajukan Cek Jadwal & Harga →</button>
-        </form>
+            <div class="field">
+              <label for="dataPenumpang">Daftar Penumpang (Sesuai KTP / Paspor)</label>
+              <textarea id="dataPenumpang" required placeholder="1. Budi Santoso - NIK 147101xxxxxxxxxx&#10;2. Siti Aminah - NIK 147101xxxxxxxxxx"></textarea>
+              <div class="hint">Pastikan penulisan nama dan nomor identitas benar sesuai KTP/Paspor.</div>
+            </div>
 
-        <div id="orderCreatedBox" class="success-banner hidden">
-          <div style="font-size:13.5px;font-weight:800;color:#065f46">Permintaan Tiket Berhasil Dibuat!</div>
-          <div style="font-size:12.5px;color:#047857;margin-top:2px">Gunakan kode berikut untuk cek total tagihan dan pembayaran:</div>
-          <div class="code-row">
-            <span id="createdKodeText" class="mono"></span>
-            <button type="button" onclick="goToCreatedOrder()" style="border:none;background:#059669;color:#fff;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer">Lihat Tagihan →</button>
+            <button type="submit" id="submitOrderBtn" class="btn-submit">Ajukan Cek Jadwal &amp; Harga →</button>
+          </form>
+
+          <div id="orderCreatedBox" class="success-banner hidden">
+            <div style="font-size:13.5px;font-weight:800;color:#065f46">Permintaan Tiket Berhasil Dibuat!</div>
+            <div style="font-size:12.5px;color:#047857;margin-top:2px">Gunakan kode berikut untuk cek total tagihan dan pembayaran:</div>
+            <div class="code-row">
+              <span id="createdKodeText" class="mono"></span>
+              <button type="button" onclick="goToCreatedOrder()" style="border:none;background:#059669;color:#fff;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer">Lihat Tagihan →</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- TAB 2: CEK STATUS & BAYAR -->
-      <div id="sectionStatus" class="widget-body hidden">
-        <div class="field" style="margin-bottom:0">
-          <label for="searchQuery">Cari Berdasarkan Kode Order atau Nomor WhatsApp</label>
-          <div class="search-bar">
-            <input type="text" id="searchQuery" placeholder="Contoh: TRX-261119-123 atau 0812xxxx" />
-            <button type="button" class="btn-dark" onclick="cariPesanan()">Cek Pesanan</button>
+        <!-- TAB 2: CEK STATUS & BAYAR -->
+        <div id="sectionStatus" class="widget-body hidden">
+          <div class="field" style="margin-bottom:0">
+            <label for="searchQuery">Cari Berdasarkan Kode Order atau Nomor WhatsApp</label>
+            <div class="search-bar">
+              <input type="text" id="searchQuery" placeholder="Contoh: TRX-261119-123 atau 0812xxxx" />
+              <button type="button" class="btn-dark" onclick="cariPesanan()">Cek Pesanan</button>
+            </div>
           </div>
+          <div id="statusResultContainer"></div>
         </div>
-        <div id="statusResultContainer"></div>
       </div>
     </div>
-  </div>
 
-  <!-- SECTION: 4 MODA -->
-  <section class="section" id="layanan">
-    <div class="section-head">
-      <h2>Semua Moda Transportasi Utama</h2>
-      <p>Satu pintu pemesanan untuk perjalanan udara, darat, maupun penyeberangan laut.</p>
-    </div>
-    <div class="cards-4">
-      <div class="info-card">
-        <div class="info-icon">✈️</div>
-        <h3>Tiket Pesawat</h3>
-        <p>Rute domestik & internasional seluruh maskapai dengan e-tiket PNR resmi.</p>
+    <!-- SECTION: 4 MODA -->
+    <section class="section" id="layanan">
+      <div class="section-head">
+        <h2>Semua Moda Transportasi Utama</h2>
+        <p>Satu pintu pemesanan untuk perjalanan udara, darat, maupun penyeberangan laut.</p>
       </div>
-      <div class="info-card">
-        <div class="info-icon">🚆</div>
-        <h3>Kereta Api</h3>
-        <p>Tiket KA jarak jauh & lokal dengan pemilihan kursi sesuai ketersediaan.</p>
+      <div class="cards-4">
+        <div class="info-card">
+          <div class="info-icon">✈️</div>
+          <h3>Tiket Pesawat</h3>
+          <p>Rute domestik &amp; internasional seluruh maskapai dengan e-tiket PNR resmi.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">🚆</div>
+          <h3>Kereta Api</h3>
+          <p>Tiket KA jarak jauh &amp; lokal dengan pemilihan kursi sesuai ketersediaan.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">🚌</div>
+          <h3>Bus AKAP &amp; Travel</h3>
+          <p>Berbagai PO bus antarkota &amp; travel eksekutif dengan titik naik jelas.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">🚢</div>
+          <h3>Kapal Laut &amp; Ferry</h3>
+          <p>Tiket kapal penumpang antar-pulau maupun penyeberangan reguler.</p>
+        </div>
       </div>
-      <div class="info-card">
-        <div class="info-icon">🚌</div>
-        <h3>Bus AKAP & Travel</h3>
-        <p>Berbagai PO bus antarkota & travel eksekutif dengan titik naik jelas.</p>
-      </div>
-      <div class="info-card">
-        <div class="info-icon">🚢</div>
-        <h3>Kapal Laut & Ferry</h3>
-        <p>Tiket kapal penumpang antar-pulau maupun penyeberangan reguler.</p>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- SECTION: CARA PESAN -->
-  <section class="section" id="cara-pesan">
-    <div class="section-head">
-      <h2>Alur Pemesanan Praktis</h2>
-      <p>Proses cepat dan aman dengan konfirmasi harga sebelum transfer.</p>
-    </div>
-    <div class="cards-3">
-      <div class="info-card">
-        <span class="step-num">LANGKAH 1</span>
-        <h3>Pilih Rute & Data Penumpang</h3>
-        <p>Pilih moda transportasi, tentukan kota asal & tujuan, lalu masukkan nama sesuai KTP/Paspor.</p>
+    <!-- SECTION: CARA PESAN -->
+    <section class="section" id="cara-pesan">
+      <div class="section-head">
+        <h2>Alur Pemesanan Praktis</h2>
+        <p>Proses cepat dan aman dengan konfirmasi harga sebelum transfer.</p>
       </div>
-      <div class="info-card">
-        <span class="step-num">LANGKAH 2</span>
-        <h3>Cek Tagihan & Transfer</h3>
-        <p>Kami mengunci jadwal & total harga terbaik. Transfer langsung ke rekening BRI, SeaBank, atau DANA atas nama Arief.</p>
+      <div class="cards-3">
+        <div class="info-card">
+          <span class="step-num">LANGKAH 1</span>
+          <h3>Pilih Rute &amp; Data Penumpang</h3>
+          <p>Pilih moda transportasi, tentukan kota asal &amp; tujuan, lalu masukkan nama sesuai KTP/Paspor.</p>
+        </div>
+        <div class="info-card">
+          <span class="step-num">LANGKAH 2</span>
+          <h3>Cek Tagihan &amp; Transfer</h3>
+          <p>Kami mengunci jadwal &amp; total harga terbaik. Transfer langsung ke rekening BRI, SeaBank, atau DANA atas nama Arief.</p>
+        </div>
+        <div class="info-card">
+          <span class="step-num">LANGKAH 3</span>
+          <h3>Terima E-Tiket Resmi</h3>
+          <p>Setelah pembayaran terverifikasi, kode booking dan file e-tiket langsung tersedia untuk diunduh.</p>
+        </div>
       </div>
-      <div class="info-card">
-        <span class="step-num">LANGKAH 3</span>
-        <h3>Terima E-Tiket Resmi</h3>
-        <p>Setelah pembayaran terverifikasi, kode booking dan file e-tiket langsung tersedia untuk diunduh.</p>
-      </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <!-- FOOTER -->
   <footer class="footer">
-    <strong>TiketExpress</strong> — Layanan Pemesanan Tiket Pesawat, Kereta Api, Bus & Kapal Laut.<br />
-    Pastikan data identitas penumpang sesuai KTP/Paspor sebelum melakukan pembayaran.
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Tiket<span>Express</span></div>
+        <div class="footer-desc">Layanan pemesanan tiket pesawat, kereta api, bus &amp; kapal laut. Pastikan data penumpang sesuai KTP/Paspor sebelum transfer.</div>
+      </div>
+      <div class="footer-links">
+        <a href="#bookingBox" onclick="switchTab('order')">Pesan Tiket</a>
+        <button type="button" onclick="jumpToStatus()">Cek Tagihan</button>
+      </div>
+    </div>
   </footer>
 
   <script>
     // === KONFIGURASI SUPABASE & REKENING / E-WALLET ===
-    const SUPABASE_URL = 'https://ezzxndbjbbvlptetrcxo.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6enhuZGJqYmJ2bHB0ZXRyY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwODYzMDksImV4cCI6MjExMDY2MjMwOX0.iLJk-rer6VwK_sckmbii8NGS6lmDdlgHHfM0d1X6awU';
+    const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
     const PAYMENT_METHODS = [
       { bank: 'BRI', nomor: '2250 0100 5337 534', nama: 'ARIEF' },
@@ -983,11 +1063,11 @@
 
       let panel = '';
       if (item.status === 'Cek Harga') {
-        panel = `<div class="hint" style="margin-top:12px">Admin sedang mengecek ketersediaan kursi & harga terbaik. Silakan klik <b>Cek Pesanan</b> beberapa menit lagi.</div>`;
+        panel = `<div class="hint" style="margin-top:12px">Admin sedang mengecek ketersediaan kursi &amp; harga terbaik. Silakan klik <b>Cek Pesanan</b> beberapa menit lagi.</div>`;
       } else if (item.status === 'Menunggu Bayar') {
         const rekeningHtml = PAYMENT_METHODS.map((acc) => `
           <div class="rek-card">
-            <div>
+            <div style="min-width:0">
               <div style="font-size:11.5px;font-weight:800;color:#0284c7">${acc.bank}</div>
               <div class="mono" style="font-size:15px;margin:2px 0">${acc.nomor}</div>
               <div style="font-size:11.5px;color:#64748b">a.n. ${acc.nama}</div>
@@ -1029,7 +1109,7 @@
 
       return `
         <div class="status-card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
             <span class="mono" style="font-size:13px;color:#64748b">${item.kode_order}</span>
             <span class="badge ${badgeClass}">${item.status}</span>
           </div>
