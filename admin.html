@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin TiketExpress — Kelola Order & Untung</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --blue: #0284c7;
+      --blue-dark: #0369a1;
+      --blue-soft: #e0f2fe;
+      --green: #059669;
+      --red: #dc2626;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 48px;
+    }
+
+    /* LOGIN */
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .login-card h1 { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+    .login-card p { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
+
+    /* TOPBAR */
+    .topbar {
+      background: linear-gradient(135deg, #0f172a 0%, #0369a1 65%, #0284c7 100%);
+      color: #ffffff;
+      padding: 20px 16px 64px;
+    }
+
+    .topbar-inner {
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .topbar h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+    .topbar p { font-size: 12px; color: #e0f2fe; }
+
+    .toolbar { display: flex; gap: 8px; align-items: center; }
+
+    select, input {
+      border: 1.5px solid #cbd5e1;
+      background: #ffffff;
+      color: var(--text);
+      border-radius: 11px;
+      padding: 10px 12px;
+      font-size: 13.5px;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+
+    .btn-refresh {
+      border: none;
+      background: #ffffff;
+      color: var(--blue-dark);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 11px;
+      cursor: pointer;
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 980px;
+      margin: -42px auto 0;
+      padding: 0 16px;
+    }
+
+    /* STATS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+    }
+
+    .stat-card.profit {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+    }
+
+    .stat-label { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+    .stat-card.profit .stat-label { color: #047857; }
+    .stat-val { font-size: 18px; font-weight: 800; margin-top: 4px; }
+    .stat-card.profit .stat-val { color: #065f46; }
+
+    /* ORDER CARDS */
+    .order-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    }
+
+    .order-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+    }
+
+    .tag.status { background: #e2e8f0; color: #1e293b; }
+
+    .btn-wa {
+      text-decoration: none;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .pax-box {
+      margin: 12px 0;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 13px;
+      font-size: 12.5px;
+      white-space: pre-line;
+    }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .box-panel {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .panel-title { font-size: 12.5px; font-weight: 800; margin-bottom: 10px; color: var(--text); }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field { margin-bottom: 10px; }
+    label { display: block; font-size: 11.5px; font-weight: 700; color: #475569; margin-bottom: 4px; }
+
+    .btn-blue {
+      border: none;
+      background: var(--blue);
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .btn-green {
+      flex: 1;
+      border: none;
+      background: var(--green);
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .btn-cancel {
+      border: none;
+      background: #fee2e2;
+      color: #991b1b;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      width: 100%;
+      border: none;
+      background: var(--blue-dark);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-radius: 11px;
+      cursor: pointer;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 720px) {
+      .work-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .row-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginBox" class="login-wrap">
+    <div class="login-card">
+      <h1>Admin TiketExpress</h1>
+      <p>Masuk untuk mengatur tagihan, cek bukti transfer, dan menerbitkan e-tiket.</p>
+      <div class="field">
+        <label for="adminPin">PIN Admin</label>
+        <input type="password" id="adminPin" placeholder="Masukkan PIN" />
+      </div>
+      <button type="button" class="btn-primary" onclick="loginAdmin()">Masuk Dashboard</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboardBox" class="hidden">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div>
+          <h1>Dashboard Admin TiketExpress</h1>
+          <p>Pesawat • Kereta Api • Bus • Kapal Laut</p>
+        </div>
+        <div class="toolbar">
+          <select id="filterStatus" onchange="loadOrders()">
+            <option value="ALL">Semua Status</option>
+            <option value="Cek Harga">Cek Harga</option>
+            <option value="Menunggu Bayar">Menunggu Bayar</option>
+            <option value="Verifikasi">Verifikasi Bukti Bayar</option>
+            <option value="Selesai">Selesai</option>
+            <option value="Batal">Batal</option>
+          </select>
+          <button type="button" class="btn-refresh" onclick="loadOrders()">↻ Refresh</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Omzet (Selesai)</div>
+          <div id="statOmzet" class="stat-val">Rp 0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Modal Tiket</div>
+          <div id="statModal" class="stat-val">Rp 0</div>
+        </div>
+        <div class="stat-card profit">
+          <div class="stat-label">Untung Bersih</div>
+          <div id="statUntung" class="stat-val">Rp 0</div>
+        </div>
+      </div>
+
+      <div id="ordersList"></div>
+    </main>
+  </div>
+
+  <script>
+    // === KONFIGURASI ===
+    const SUPABASE_URL = 'https://ezzxndbjbbvlptetrcxo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6enhuZGJqYmJ2bHB0ZXRyY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwODYzMDksImV4cCI6MjExMDY2MjMwOX0.iLJk-rer6VwK_sckmbii8NGS6lmDdlgHHfM0d1X6awU';
+    
+    const ADMIN_PIN = '280901'; // Ganti PIN kamu
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    if (sessionStorage.getItem('te_admin_ok') === '1') {
+      showDashboard();
+    }
+
+    function loginAdmin() {
+      if (document.getElementById('adminPin').value === ADMIN_PIN) {
+        sessionStorage.setItem('te_admin_ok', '1');
+        showDashboard();
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById('loginBox').classList.add('hidden');
+      document.getElementById('dashboardBox').classList.remove('hidden');
+      loadOrders();
+    }
+
+    function formatRupiah(num) {
+      return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    async function loadOrders() {
+      const filter = document.getElementById('filterStatus').value;
+      let q = db.from('ticket_orders').select('*').order('created_at', { ascending: false });
+      if (filter !== 'ALL') q = q.eq('status', filter);
+
+      const { data, error } = await q;
+      if (error) return;
+
+      const selesai = data.filter(o => o.status === 'Selesai');
+      const omzet = selesai.reduce((s, o) => s + Number(o.harga_jual || 0), 0);
+      const modal = selesai.reduce((s, o) => s + Number(o.harga_pokok || 0), 0);
+
+      document.getElementById('statOmzet').textContent = formatRupiah(omzet);
+      document.getElementById('statModal').textContent = formatRupiah(modal);
+      document.getElementById('statUntung').textContent = formatRupiah(omzet - modal);
+
+      const listEl = document.getElementById('ordersList');
+      if (!data.length) {
+        listEl.innerHTML = '<div class="order-card" style="text-align:center;color:#64748b;font-size:13px">Belum ada pesanan pada filter ini.</div>';
+        return;
+      }
+
+      listEl.innerHTML = data.map(renderCard).join('');
+    }
+
+    function renderCard(o) {
+      const untung = Number(o.harga_jual || 0) - Number(o.harga_pokok || 0);
+      const hpClean = o.no_hp.replace(/^0/, '62').replace(/\D/g, '');
+      const waMsg = encodeURIComponent(`Halo ${o.nama_pemesan}, pesanan tiket ${o.moda} (${o.rute}) kode *${o.kode_order}* sudah diperbarui. Silakan cek tagihan/tiket di website kami.`);
+
+      return `
+        <div class="order-card">
+          <div class="order-head">
+            <div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px">
+                <span class="mono" style="font-size:13px">${o.kode_order}</span>
+                <span class="tag">${o.moda}</span>
+                <span class="tag status">${o.status}</span>
+              </div>
+              <div style="font-size:16px;font-weight:800">${o.rute}</div>
+              <div style="font-size:12.5px;color:#64748b;margin-top:2px">
+                Tgl: <b>${o.tanggal_berangkat}</b> • ${o.jumlah_penumpang} Penumpang • Pref: ${o.jam_preferensi || '-'}
+              </div>
+              <div style="font-size:12.5px;color:#334155;margin-top:3px">
+                Pemesan: <b>${o.nama_pemesan}</b> (${o.no_hp})
+              </div>
+            </div>
+            <a href="https://wa.me/${hpClean}?text=${waMsg}" target="_blank" class="btn-wa">Chat WA</a>
+          </div>
+
+          <div class="pax-box">${o.data_penumpang}</div>
+
+          <div class="work-grid">
+            <div class="box-panel">
+              <div class="panel-title">1. Atur Harga Pokok, Jual & Batas Bayar</div>
+              <div class="row-2">
+                <div class="field">
+                  <label>Harga Pokok (Modal)</label>
+                  <input type="number" id="pokok-${o.id}" value="${o.harga_pokok || ''}" placeholder="750000" />
+                </div>
+                <div class="field">
+                  <label>Harga Jual (Tagihan)</label>
+                  <input type="number" id="jual-${o.id}" value="${o.harga_jual || ''}" placeholder="775000" />
+                </div>
+              </div>
+              <div class="field">
+                <label>Batas Waktu Bayar</label>
+                <input type="text" id="limit-${o.id}" value="${o.batas_bayar || ''}" placeholder="Hari ini pukul 21:00 WIB" />
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px">
+                <span style="font-size:12px;font-weight:800;color:#047857">Untung: ${formatRupiah(untung)}</span>
+                <button type="button" class="btn-blue" onclick="kirimTagihan('${o.id}')">Simpan & Kirim Tagihan</button>
+              </div>
+            </div>
+
+            <div class="box-panel">
+              <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center">
+                <span>2. Bukti Bayar & Terbit E-Tiket</span>
+                ${o.bukti_bayar_url ? `<a href="${o.bukti_bayar_url}" target="_blank" style="font-size:12px;font-weight:700;color:#0369a1">Lihat Bukti Bayar ↗</a>` : '<span style="font-size:11px;color:#94a3b8">Belum upload bukti</span>'}
+              </div>
+
+              <div class="field">
+                <label>Kode Booking / PNR Resmi</label>
+                <input type="text" id="booking-${o.id}" value="${o.kode_booking || ''}" placeholder="Contoh: ABC123" style="text-transform:uppercase" />
+              </div>
+
+              <div class="field">
+                <label>Upload File E-Tiket (PDF / Gambar)</label>
+                <input type="file" id="etiket-${o.id}" accept=".pdf,image/*" />
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button type="button" class="btn-cancel" onclick="batalkanOrder('${o.id}')">Batalkan</button>
+                <button type="button" class="btn-green" id="btn-issue-${o.id}" onclick="terbitkanTiket('${o.id}', '${o.etiket_url || ''}')">Terbitkan Tiket</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function kirimTagihan(id) {
+      const harga_pokok = Number(document.getElementById(`pokok-${id}`).value || 0);
+      const harga_jual = Number(document.getElementById(`jual-${id}`).value || 0);
+      const batas_bayar = document.getElementById(`limit-${id}`).value.trim();
+
+      await db.from('ticket_orders').update({
+        harga_pokok,
+        harga_jual,
+        batas_bayar,
+        status: 'Menunggu Bayar'
+      }).eq('id', id);
+
+      loadOrders();
+    }
+
+    async function terbitkanTiket(id, existingUrl) {
+      const btn = document.getElementById(`btn-issue-${id}`);
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      const kode_booking = document.getElementById(`booking-${id}`).value.trim().toUpperCase();
+      const fileInput = document.getElementById(`etiket-${id}`);
+      let etiket_url = existingUrl;
+
+      if (fileInput.files && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const ext = file.name.split('.').pop();
+        const fileName = `etiket_${id}_${Date.now()}.${ext}`;
+
+        const { error: upErr } = await db.storage.from('tiket-files').upload(fileName, file);
+        if (!upErr) {
+          const { data: pub } = db.storage.from('tiket-files').getPublicUrl(fileName);
+          etiket_url = pub.publicUrl;
+        }
+      }
+
+      await db.from('ticket_orders').update({
+        kode_booking,
+        etiket_url,
+        status: 'Selesai'
+      }).eq('id', id);
+
+      loadOrders();
+    }
+
+    async function batalkanOrder(id) {
+      await db.from('ticket_orders').update({ status: 'Batal' }).eq('id', id);
+      loadOrders();
+    }
+  </script>
+</body>
+          </html>
+          
