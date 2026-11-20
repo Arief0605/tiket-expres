@@ -424,6 +424,42 @@
   </div>
 
   <script>
+
+    // === AUTO-REFRESH DAFTAR PESANAN ADMIN (REALTIME + POLLING AMAN) ===
+    const ADMIN_REFRESH_MS = 15000; // 15 detik
+
+    function sedangMengisiFormAdmin() {
+      const aktif = document.activeElement;
+      if (!aktif) return false;
+      const tag = aktif.tagName.toLowerCase();
+      // Jangan render ulang saat admin sedang mengetik di input/textarea/select
+      return tag === 'input' || tag === 'textarea' || tag === 'select';
+    }
+
+    async function refreshDaftarAdminAman() {
+      if (sedangMengisiFormAdmin()) return;
+      if (typeof muatPesananAdmin === 'function') {
+        await muatPesananAdmin();
+      }
+    }
+
+    // 1. Dengarkan perubahan langsung dari Supabase Realtime (jika diaktifkan di dashboard Supabase)
+    if (typeof db !== 'undefined' && db.channel) {
+      db.channel('ticket-orders-admin-live')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'ticket_orders' },
+          () => {
+            refreshDaftarAdminAman();
+          }
+        )
+        .subscribe();
+    }
+
+    // 2. Polling berkala sebagai cadangan agar tetap terupdate
+    setInterval(refreshDaftarAdminAman, ADMIN_REFRESH_MS);
+
+    
     // === KONFIGURASI ===
     const SUPABASE_URL = 'https://ezzxndbjbbvlptetrcxo.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6enhuZGJqYmJ2bHB0ZXRyY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwODYzMDksImV4cCI6MjExMDY2MjMwOX0.iLJk-rer6VwK_sckmbii8NGS6lmDdlgHHfM0d1X6awU';
