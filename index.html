@@ -615,7 +615,7 @@
               </div>
             </div>
 
-            <!-- PILIHAN PREFERENSI WAKTU & MASKAPAI/OPERATOR MODEL DROPDOWN SEPERTI BANDARA -->
+            <!-- PILIHAN PREFERENSI WAKTU & MASKAPAI/OPERATOR -->
             <div class="grid-2">
               <div class="field ac-wrap">
                 <label for="waktuInput">Preferensi Waktu Berangkat</label>
@@ -753,13 +753,13 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let lastCreatedCode = '';
 
-    async function kirimNotifTelegram(htmlText) {
+    async function kirimNotifTelegram(htmlText, noHp = '', waText = '') {
       if (!TG_WORKER_URL || TG_WORKER_URL.includes('YOUR_SUBDOMAIN')) return;
       try {
         await fetch(TG_WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: htmlText })
+          body: JSON.stringify({ text: htmlText, noHp, waText })
         });
       } catch (e) {
         console.error('Gagal kirim notif Telegram:', e);
@@ -1515,19 +1515,34 @@
         return;
       }
 
+      const ikonModa = {
+        Pesawat: '✈️',
+        Kereta: '🚆',
+        Bus: '🚌',
+        Kapal: '🚢'
+      }[payload.moda] || '🎫';
+
       const pesanBaru = [
-        `<b>PESANAN TIKET BARU MASUK</b>`,
-        `<b>Kode:</b> <code>${kodeOrder}</code>`,
-        `<b>Moda:</b> ${payload.moda}`,
-        `<b>Rute:</b> ${payload.rute}`,
-        `<b>Tanggal:</b> ${payload.tanggal_berangkat}`,
-        `<b>Penumpang:</b> ${payload.jumlah_penumpang} orang`,
-        `<b>Preferensi:</b> ${payload.jam_preferensi}`,
-        `<b>Pemesan:</b> ${payload.nama_pemesan} (${payload.no_hp})`,
-        `<b>Data Penumpang:</b>\n${payload.data_penumpang}`
+        `${ikonModa} <b>PESANAN BARU • ${payload.moda.toUpperCase()}</b>`,
+        `Kode Order: <code>${kodeOrder}</code>`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `📍 <b>Rute:</b> ${payload.rute}`,
+        `🗓 <b>Tanggal:</b> ${payload.tanggal_berangkat}`,
+        `⏱ <b>Preferensi:</b> ${payload.jam_preferensi}`,
+        `👥 <b>Jumlah:</b> ${payload.jumlah_penumpang} Penumpang`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `👤 <b>Pemesan:</b> ${payload.nama_pemesan}`,
+        `📱 <b>No. WA:</b> <code>${payload.no_hp}</code>`,
+        ``,
+        `🧾 <b>Daftar Penumpang:</b>`,
+        `${payload.data_penumpang}`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `<i>Status: ${payload.status}</i>`
       ].join('\n');
 
-      await kirimNotifTelegram(pesanBaru);
+      const pesanWaAwal = `Halo ${payload.nama_pemesan}, pesanan tiket ${payload.moda} (${payload.rute}, tgl ${payload.tanggal_berangkat}) kode ${kodeOrder} sudah kami terima dan sedang dicek jadwal & harganya. — TiketExpress`;
+
+      await kirimNotifTelegram(pesanBaru, payload.no_hp, pesanWaAwal);
 
       lastCreatedCode = kodeOrder;
       document.getElementById('createdKodeText').textContent = kodeOrder;
@@ -1672,9 +1687,14 @@
         status: 'Verifikasi'
       }).eq('id', orderId);
 
-      await kirimNotifTelegram(
-        `<b>BUKTI BAYAR DIUNGGAH</b>\n<b>Order ID:</b> <code>${orderId}</code>\n<a href="${pub.publicUrl}">Lihat Bukti Transfer</a>`
-      );
+      const pesanBuktiBayar = [
+        `💳 <b>BUKTI BAYAR DIUNGGAH</b>`,
+        `Order ID: <code>${orderId}</code>`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `📎 <a href="${pub.publicUrl}">Lihat Foto Bukti Transfer</a>`
+      ].join('\n');
+
+      await kirimNotifTelegram(pesanBuktiBayar);
 
       cariPesanan();
     }
