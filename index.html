@@ -739,6 +739,32 @@
   </footer>
 
   <script>
+
+    // === AUTO-REFRESH DATA PESANAN (TANPA MERESET FORM) ===
+    const AUTO_REFRESH_MS = 15000; // 15 detik (bisa diubah sesuai kebutuhan)
+
+    setInterval(async () => {
+      const statusVisible = !document.getElementById('sectionStatus').classList.contains('hidden');
+      const queryVal = document.getElementById('searchQuery').value.trim();
+      const container = document.getElementById('statusResultContainer');
+
+      // Jangan ganggu kalau user sedang memilih file bukti transfer
+      const sedangPilihFile = Array.from(document.querySelectorAll('input[type="file"]'))
+        .some(input => input.files && input.files.length > 0);
+
+      if (statusVisible && queryVal && !sedangPilihFile && container.innerHTML.trim() !== '') {
+        const { data, error } = await db
+          .from('ticket_orders')
+          .select('*')
+          .or(`kode_order.ilike.%${queryVal}%,no_hp.ilike.%${queryVal}%`)
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          container.innerHTML = data.map(renderOrderCard).join('');
+        }
+      }
+    }, AUTO_REFRESH_MS);
+    
     // === KONFIGURASI SUPABASE, WORKER TELEGRAM & REKENING / E-WALLET ===
     const SUPABASE_URL = 'https://ezzxndbjbbvlptetrcxo.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6enhuZGJqYmJ2bHB0ZXRyY3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwODYzMDksImV4cCI6MjExMDY2MjMwOX0.iLJk-rer6VwK_sckmbii8NGS6lmDdlgHHfM0d1X6awU';
